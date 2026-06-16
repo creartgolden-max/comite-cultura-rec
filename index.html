@@ -134,6 +134,11 @@
   .pill.on{background:rgba(46,125,79,.12);color:var(--ok)}
   .pill.off{background:rgba(107,100,87,.12);color:var(--muted)}
 
+  .evalbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 18px;margin-bottom:18px;font-family:Arial,sans-serif;font-size:12px;box-shadow:var(--shadow)}
+  .evalbar .who{color:var(--muted)}
+  .evalbar select{font-family:Georgia,serif;font-size:15px;color:var(--green);border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff;cursor:pointer;margin-left:6px}
+  .evalbar .pend{color:var(--muted)} .evalbar .pend b{color:var(--green);font-family:Georgia,serif;font-size:14px}
+
   .overlay{
     position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
     background:linear-gradient(135deg,rgba(22,41,74,.96),rgba(31,56,100,.96));padding:20px;
@@ -180,7 +185,7 @@
     <p>Ingresa tu PIN personal. Identifica quién del comité está evaluando este periodo.</p>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
     <button id="pinBtn">Entrar</button>
-    <div class="msg info" id="loginMsg">Conectando con Supabase…</div>
+    <div class="msg info" id="loginMsg">Conectando…</div>
   </div>
 </div>
 
@@ -191,6 +196,12 @@
   <div class="sessionbar">
     <div class="who">Evaluador en sesión: <b id="sessUser">—</b><span class="pill off" id="sessPill">sin sesión</span></div>
     <div class="sync">Periodo activo: <b id="sessPeriodo">—</b> · <span id="syncState">sincronización en pausa</span></div>
+  </div>
+
+  <!-- Selector de colaborador a evaluar + pendientes -->
+  <div class="evalbar">
+    <div class="who">Evaluar a: <select id="colabSel"></select></div>
+    <div class="pend" id="pendInfo">—</div>
   </div>
 
   <header class="top">
@@ -257,7 +268,7 @@
   </div>
 
   <div class="actions">
-    <button class="act" id="saveBtn">Guardar evaluación en Supabase</button>
+    <button class="act" id="saveBtn">Guardar evaluación</button>
     <button class="act" onclick="window.print()">Exportar / Imprimir PDF</button>
     <button class="act ghost" onclick="resetAll()">Reiniciar evaluación</button>
   </div>
@@ -272,14 +283,14 @@
 <script>
 /* =====================================================================
    ███  CONFIG — EDITA SOLO ESTE BLOQUE  ███
-   Rodrigo pega aquí la URL y la ANON key del proyecto h donde
+   Rodrigo pega aquí la URL y la ANON key del proyecto Supabase donde
    corriste cultura_fase1.sql. NO uses la service_role key, solo la anon.
    (El paquete dice proyecto qcwpnovwyhzhqqmhjxco — verifica que la URL
    corresponda a ESE proyecto y no al de Inventario.)
    ===================================================================== */
 const CONFIG = {
-  SUPABASE_URL:      "https://qcwpnovwyhzhqqmhjxco.supabase.co",   // ejh: https://qcwpnovwyhzhqqmhjxco.supabase.co
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjd3Bub3Z3eWh6aHFxbWhqeGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDA3OTUsImV4cCI6MjA5NTI3Njc5NX0.-MSnn07PdxstQ90OLf16823Nvihr47ePXoQSFvgC3mU",          // la llave pública (anon)
+  SUPABASE_URL:      "PEGAR_AQUI_LA_URL_DE_SUPABASE",   // ej: https://qcwpnovwyhzhqqmhjxco.supabase.co
+  SUPABASE_ANON_KEY: "PEGAR_AQUI_LA_ANON_KEY",          // la llave pública (anon)
   PERIODO:           ""                                  // vacío = mes actual (YYYY-MM). Ej fijo: "2026-05"
 };
 /* ===================================================================== */
@@ -288,7 +299,7 @@ const CONFIG = {
 let db = null;
 const SESSION = { pin:null, evalId:null, evalNombre:null, evalRol:null };
 let PERIODO = CONFIG.PERIODO || (()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
-let DATA = { evaluadores:[], evaluado:null };   // se llenan desde Supabase
+let DATA = { evaluadores:[], colaboradores:[], evaluado:null, evaluadosPeriodo:new Set() };   // se llenan desde Supabase
 let dirty = false;                              // hay cambios locales sin guardar
 let syncTimer = null;
 const cfgOK = CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith("PEGAR")
@@ -550,48 +561,84 @@ function applyEvaluacion(row){
   }
 }
 
-/* Carga evaluadores, colaborador evaluado y la evaluación del periodo */
+/* Carga evaluadores, colaboradores (Alma + 16 coordinadores) y la evaluación del elegido */
 async function load(){
   if(!db) return;
   try{
-    const [evRes, coRes] = await Promise.all([
+    const [evRes, coRes, periRes] = await Promise.all([
       db.from('cult_evaluadores_publico').select('id,nombre,rol,activo').eq('activo',true),
-      db.from('cult_colaboradores').select('*').eq('activo',true)
+      db.from('cult_colaboradores').select('*').eq('activo',true).order('id'),
+      db.from('cult_evaluaciones').select('colaborador_id').eq('periodo', PERIODO)
     ]);
     if(evRes.error) throw evRes.error;
     if(coRes.error) throw coRes.error;
+    if(periRes.error) throw periRes.error;
     DATA.evaluadores = evRes.data || [];
-    // Piloto: se evalúa al primer colaborador activo (Alma). Si hubiera varios,
-    // aquí se podría poner un selector; por ahora el piloto es 1.
-    DATA.evaluado = (coRes.data || [])[0] || null;
+    DATA.colaboradores = coRes.data || [];
+    DATA.evaluadosPeriodo = new Set((periRes.data||[]).map(r=>r.colaborador_id));
 
-    if(DATA.evaluado){
-      document.getElementById('evalName').textContent = DATA.evaluado.nombre;
-      document.getElementById('evalRole').textContent = DATA.evaluado.puesto || '';
-      const evalRes = await db.from('cult_evaluaciones')
-        .select('*')
-        .eq('colaborador_id', DATA.evaluado.id)
-        .eq('periodo', PERIODO)
-        .maybeSingle();
-      if(evalRes.error) throw evalRes.error;
-      applyEvaluacion(evalRes.data);
-    } else {
-      document.getElementById('evalName').textContent = 'Sin colaborador activo';
-      document.getElementById('evalRole').textContent = '';
-    }
+    fillColabSelect();
+    // colaborador elegido: el del selector, o el primero (Alma) por defecto
+    const selId = document.getElementById('colabSel').value;
+    DATA.evaluado = DATA.colaboradores.find(c=>c.id===selId) || DATA.colaboradores[0] || null;
+    document.getElementById('colabSel').value = DATA.evaluado ? DATA.evaluado.id : '';
 
+    await loadEvaluacionActual();
+    updatePendientes();
     dirty=false;
-    renderAll();
-    document.getElementById('syncState').textContent='actualizado desde Supabase';
+    document.getElementById('syncState').textContent='actualizado';
   }catch(err){
     console.error(err);
     toast('Error al cargar: '+(err.message||err), 'err');
   }
 }
 
+/* Carga la evaluación del colaborador elegido para el periodo (o formulario en blanco) */
+async function loadEvaluacionActual(){
+  if(!DATA.evaluado){
+    document.getElementById('evalName').textContent = 'Sin colaborador activo';
+    document.getElementById('evalRole').textContent = '';
+    applyEvaluacion(null); renderAll(); return;
+  }
+  document.getElementById('evalName').textContent = DATA.evaluado.nombre;
+  document.getElementById('evalRole').textContent = DATA.evaluado.puesto || '';
+  const evalRes = await db.from('cult_evaluaciones')
+    .select('*').eq('colaborador_id', DATA.evaluado.id).eq('periodo', PERIODO).maybeSingle();
+  if(evalRes.error){ console.error(evalRes.error); }
+  applyEvaluacion(evalRes.data);
+  renderAll();
+}
+
+/* Llena el dropdown de colaboradores (Alma + 16 coordinadores); ✓ en los ya evaluados del mes */
+function fillColabSelect(){
+  const sel=document.getElementById('colabSel'); if(!sel) return;
+  const prev=sel.value; const done=DATA.evaluadosPeriodo||new Set();
+  sel.innerHTML = (DATA.colaboradores||[]).map(c=>`<option value="${c.id}">${done.has(c.id)?'✓ ':''}${c.nombre}</option>`).join('');
+  if(prev && (DATA.colaboradores||[]).some(c=>c.id===prev)) sel.value=prev;
+}
+
+/* Cambio de colaborador en el dropdown */
+async function onColabChange(){
+  const sel=document.getElementById('colabSel');
+  if(dirty && !confirm('Tienes cambios sin guardar en este colaborador. ¿Cambiar y descartarlos?')){
+    if(DATA.evaluado) sel.value=DATA.evaluado.id; return;
+  }
+  DATA.evaluado = (DATA.colaboradores||[]).find(c=>c.id===sel.value) || null;
+  dirty=false;
+  await loadEvaluacionActual();
+}
+
+/* Indicador de pendientes del periodo (cuántos de los 17 evaluables ya tienen evaluación) */
+function updatePendientes(){
+  const el=document.getElementById('pendInfo'); if(!el) return;
+  const total=(DATA.colaboradores||[]).length;
+  const hechos=(DATA.colaboradores||[]).filter(c=>(DATA.evaluadosPeriodo||new Set()).has(c.id)).length;
+  el.innerHTML = total ? `Evaluados este periodo: <b>${hechos}/${total}</b> · faltan <b>${total-hechos}</b>` : '—';
+}
+
 /* Guarda la evaluación vía RPC (verifica PIN en el servidor) */
 async function save(){
-  if(!db){ toast('Sin conexión a Supabase', 'err'); return; }
+  if(!db){ toast('Sin conexión', 'err'); return; }
   if(!SESSION.pin){ toast('Inicia sesión con tu PIN primero', 'err'); return; }
   if(!DATA.evaluado){ toast('No hay colaborador para evaluar', 'err'); return; }
 
@@ -624,13 +671,15 @@ async function save(){
     });
     if(error) throw error;
     dirty=false;
-    toast('Evaluación guardada ✓', 'ok');
-    document.getElementById('syncState').textContent='guardado en Supabase';
+    if(DATA.evaluadosPeriodo) DATA.evaluadosPeriodo.add(DATA.evaluado.id);
+    fillColabSelect(); document.getElementById('colabSel').value=DATA.evaluado.id; updatePendientes();
+    toast('Evaluación de '+DATA.evaluado.nombre+' guardada ✓', 'ok');
+    document.getElementById('syncState').textContent='guardado';
   }catch(err){
     console.error(err);
     toast('No se pudo guardar: '+(err.message||err), 'err');
   }finally{
-    btn.disabled=false; btn.textContent='Guardar evaluación en Supabase';
+    btn.disabled=false; btn.textContent='Guardar evaluación';
   }
 }
 
@@ -648,7 +697,7 @@ async function doLogin(){
   const msg=document.getElementById('loginMsg');
   const pin=document.getElementById('pinInput').value.trim();
   if(!pin){ msg.className='msg err'; msg.textContent='Escribe tu PIN.'; return; }
-  if(!db){ msg.className='msg err'; msg.textContent='Falta configurar la URL y la llave de Supabase (bloque CONFIG).'; return; }
+  if(!db){ msg.className='msg err'; msg.textContent='Falta configurar el acceso (bloque CONFIG).'; return; }
   msg.className='msg info'; msg.textContent='Verificando…';
   try{
     const { data, error } = await db.rpc('cult_check_pin', { p_pin: pin });
@@ -692,6 +741,7 @@ function init(){
   document.getElementById('pinBtn').addEventListener('click', doLogin);
   document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
   document.getElementById('saveBtn').addEventListener('click', save);
+  document.getElementById('colabSel').addEventListener('change', onColabChange);
   document.getElementById('pinInput').focus();
 }
 init();
