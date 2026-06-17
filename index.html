@@ -3,685 +3,715 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SGC-Rec · Sistema de Gestión Corporativo — Recouromex</title>
+<title>Apego a la Cultura · Comité Evaluador — Recouromex</title>
+<!-- SDK de Supabase (Fase 2) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --ink:#15212e;--navy:#1F3864;--navy-deep:#16294a;--accent:#2E75B6;
-    --card:#ffffff;--line:#d7dde6;--ok:#2e7d4f;--warn:#c9952b;--bad:#b53a2e;
-    --muted:#6b7280;--shadow:0 1px 3px rgba(31,56,100,.07),0 10px 30px rgba(31,56,100,.09);
+    --ink:#1a2e22;
+    --green:#1F3864;
+    --green-deep:#16294a;
+    --accent:#2E75B6;
+    --paper:#f4f1ea;
+    --card:#ffffff;
+    --line:#d9d3c6;
+    --ok:#2e7d4f;
+    --warn:#c9952b;
+    --bad:#b53a2e;
+    --muted:#6b6457;
+    --shadow:0 1px 3px rgba(31,56,100,.08),0 8px 24px rgba(31,56,100,.08);
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Georgia,'Times New Roman',serif;background:radial-gradient(1200px 600px at 85% -15%,rgba(46,117,182,.12),transparent 55%),linear-gradient(180deg,#e8edf3,#eef1f5);color:var(--ink);min-height:100vh;padding:0 0 80px}
-  .topbar{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;padding:22px 32px;box-shadow:var(--shadow);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;border-bottom:3px solid var(--accent)}
-  .topbar .eyebrow{font-family:Arial,sans-serif;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:#bcd2ec;font-weight:700}
-  .topbar h1{font-size:26px;letter-spacing:.5px;margin-top:3px;line-height:1.1}
-  .topbar .period{text-align:right;font-family:Arial,sans-serif}
-  .topbar .period .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#bcd2ec}
-  .topbar .period select{margin-top:4px;font-family:Georgia,serif;font-size:17px;font-weight:bold;background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:5px 10px;cursor:pointer}
-  .topbar .period select option{color:#15212e}
-  .wrap{max-width:1180px;margin:0 auto;padding:28px 24px 0}
-  .sectitle{display:flex;justify-content:space-between;align-items:center;margin:8px 0 16px;flex-wrap:wrap;gap:12px}
-  .sectitle h2{font-size:13px;font-family:Arial,sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
-  .sectitle h2 span{color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0;font-size:12px;margin-left:8px}
-  .modgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:36px}
-  @media(max-width:900px){.modgrid{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:600px){.modgrid{grid-template-columns:1fr}}
-  .mod{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;position:relative;display:flex;flex-direction:column;transition:.18s}
-  .mod:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(31,56,100,.1),0 16px 40px rgba(31,56,100,.13)}
-  .mod .accentbar{height:5px;width:100%}
-  .mod .body{padding:18px 20px;flex:1;display:flex;flex-direction:column}
-  .mod .mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
-  .mod .mname{font-size:18px;color:var(--navy);line-height:1.15}
-  .mod .mname small{display:block;font-family:Arial,sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
-  .pulsepill{font-family:Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 11px;border-radius:20px;color:#fff;white-space:nowrap;flex:0 0 auto}
-  .mod .metricrow{display:flex;gap:14px;margin:6px 0 14px}
-  .mod .metric{flex:1}
-  .mod .metric .v{font-size:26px;font-weight:bold;line-height:1}
-  .mod .metric .k{font-family:Arial,sans-serif;font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.04em}
-  .mod .note{font-family:Arial,sans-serif;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px;min-height:34px}
-  .mod .foot{display:flex;gap:8px;margin-top:auto}
-  .mod .foot button{flex:1;font-family:Arial,sans-serif;font-size:12px;cursor:pointer;border-radius:9px;padding:9px 8px;transition:.15s;border:1px solid var(--navy);background:var(--navy);color:#fff}
-  .mod .foot button.ghost{background:transparent;color:var(--navy)}
-  .mod .foot button:hover{background:var(--navy-deep);color:#fff;border-color:var(--navy-deep)}
-  .addmod{border:2px dashed var(--line);border-radius:16px;background:rgba(255,255,255,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:180px;color:var(--accent);font-family:Arial,sans-serif;transition:.18s}
-  .addmod:hover{border-color:var(--accent);background:rgba(46,117,182,.06)}
-  .addmod .plus{font-size:38px;line-height:1;font-weight:300}
-  .addmod .t{font-size:13px;font-weight:700;letter-spacing:.05em}
-  .decision{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
-  .decision .dhead{padding:20px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#f7f9fc,#eef2f7);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-  .decision .dhead .t{font-size:21px;color:var(--navy)}
-  .decision .dhead .t small{display:block;font-family:Arial,sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
-  .decision .dhead .counts{display:flex;gap:18px;font-family:Arial,sans-serif}
-  .decision .dhead .counts div{text-align:center}
-  .decision .dhead .counts .n{font-family:Georgia,serif;font-size:24px;font-weight:bold}
-  .decision .dhead .counts .l{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-  .filterbar{display:flex;gap:8px;padding:14px 24px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#fbfcfe}
-  .fbtn{font-family:Arial,sans-serif;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--muted);padding:6px 14px;border-radius:20px;transition:.12s}
-  .fbtn.on{background:var(--navy);border-color:var(--navy);color:#fff}
-  .dtable{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13.5px}
-  .dtable thead th{background:#f4f6fa;color:var(--muted);font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:11px 14px;text-align:left}
-  .dtable tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
-  .dtable tbody tr:hover{background:#fbfcfe}
-  .src{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:14px;color:#fff;white-space:nowrap}
-  .prio{font-weight:700;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
-  .prio.alta{color:var(--bad)}.prio.media{color:var(--warn)}.prio.baja{color:var(--ok)}
-  .accion-txt{color:var(--ink)}.accion-txt b{font-family:Georgia,serif}
-  .owner{color:var(--muted);font-size:12px}
-  .done-btn{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 10px;font-size:11px;font-family:Arial,sans-serif;color:var(--muted);transition:.12s}
-  .done-btn:hover{border-color:var(--ok);color:var(--ok)}
-  tr.done{opacity:.45}
-  tr.done .accion-txt{text-decoration:line-through}
-  .addaction{display:flex;gap:10px;padding:14px 24px;border-top:1px solid var(--line);background:#fbfcfe;flex-wrap:wrap;align-items:center}
-  .addaction input,.addaction select{font-family:Arial,sans-serif;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff}
-  .addaction input.grow{flex:1;min-width:180px}
-  .addaction button{font-family:Arial,sans-serif;font-size:13px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 18px;border-radius:8px}
-  .actions-global{display:flex;gap:12px;justify-content:center;margin-top:26px;flex-wrap:wrap}
-  .actions-global button{font-family:Arial,sans-serif;font-size:13px;cursor:pointer;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:11px 22px;border-radius:10px}
-  .actions-global button.ghost{background:transparent;color:var(--navy)}
-  .config-note{font-family:Arial,sans-serif;font-size:11px;color:var(--muted);text-align:center;margin-top:24px;line-height:1.7;max-width:760px;margin-left:auto;margin-right:auto}
-  .config-note code{background:#e3e8ef;padding:1px 6px;border-radius:4px;font-size:11px}
-  .demo-badge{display:inline-block;background:var(--warn);color:#fff;font-family:Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:14px;margin-left:10px;vertical-align:middle}
-  .modal-bg{position:fixed;inset:0;background:rgba(21,33,46,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
-  .modal-bg.show{display:flex}
-  .modal{background:#fff;border-radius:16px;max-width:440px;width:100%;box-shadow:var(--shadow);overflow:hidden}
-  .modal .mh{padding:18px 22px;border-bottom:1px solid var(--line);font-size:18px;color:var(--navy);font-family:Georgia,serif}
-  .modal .mb{padding:20px 22px;display:flex;flex-direction:column;gap:12px}
-  .modal label{font-family:Arial,sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .modal input,.modal select{font-family:Arial,sans-serif;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;margin-top:4px}
-  .modal .mf{padding:16px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
-  .modal .mf button{font-family:Arial,sans-serif;font-size:13px;cursor:pointer;border-radius:8px;padding:9px 18px;border:1px solid var(--navy)}
-  .modal .mf button.primary{background:var(--navy);color:#fff}
-  .modal .mf button.cancel{background:#fff;color:var(--muted);border-color:var(--line)}
-  .decsel{font-family:Arial,sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:#fff;cursor:pointer;max-width:180px}
-  .decstate{font-family:Arial,sans-serif;font-size:11px;margin-top:4px;display:block}
-  .decstate.espera{color:var(--warn)}
-  .decstate.reunir{color:var(--accent)}
-  .decstate.delegar{color:var(--accent)}
-  .decstate.cancel{color:var(--muted);text-decoration:line-through}
-  .decstate.otra{color:var(--ink)}
-  .decstate.proyecto{color:var(--ok);font-weight:700}
-  .pe-modal .mb{max-height:70vh;overflow-y:auto}
-  .pe-output{font-family:'Courier New',monospace;font-size:12px;background:#f4f6fa;border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap;line-height:1.5;color:var(--ink);margin-top:6px}
-  .pe-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .pe-grid .full{grid-column:1/-1}
-  .copied{color:var(--ok);font-family:Arial,sans-serif;font-size:12px;font-weight:700;margin-left:10px}
-  textarea.modal-ta{font-family:Arial,sans-serif;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;margin-top:4px;resize:vertical;min-height:60px}
+  body{
+    font-family:Georgia,'Times New Roman',serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(46,117,182,.10),transparent 60%),
+      linear-gradient(180deg,#efeae0,#f4f1ea);
+    color:var(--ink);min-height:100vh;padding:32px 20px 80px;
+  }
+  .wrap{max-width:1100px;margin:0 auto}
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-bottom:3px solid var(--green);padding-bottom:18px;margin-bottom:24px;flex-wrap:wrap;gap:16px;
+  }
+  .brand .eyebrow{font-family:Arial,sans-serif;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:700}
+  .brand h1{font-size:28px;color:var(--green);letter-spacing:.5px;line-height:1.1;margin-top:4px}
+  .brand .sub{font-family:Arial,sans-serif;font-size:13px;color:var(--muted);margin-top:6px}
+  .person{text-align:right;font-family:Arial,sans-serif}
+  .person .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .person .name{font-family:Georgia,serif;font-size:19px;color:var(--ink);font-weight:bold;margin-top:2px}
+  .person .role{font-size:12px;color:var(--accent);margin-top:2px}
 
-  /* ===== Login PIN de Dirección + toast ===== */
-  .overlay{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(22,41,74,.97),rgba(31,56,100,.97));padding:20px}
+  /* Comité bar */
+  .committee{
+    background:linear-gradient(135deg,var(--green-deep),var(--green));color:#fff;
+    border-radius:16px;padding:18px 22px;margin-bottom:24px;box-shadow:var(--shadow);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;
+  }
+  .committee .ctitle{font-family:Arial,sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.85;margin-bottom:8px}
+  .members{display:flex;gap:10px;flex-wrap:wrap}
+  .mem{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 14px;font-family:Arial,sans-serif;font-size:13px}
+  .mem.recused{opacity:.45;text-decoration:line-through}
+  .mem .mrole{display:block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-top:2px}
+  .recusenote{font-family:Arial,sans-serif;font-size:12px;background:rgba(201,149,43,.25);border:1px solid rgba(201,149,43,.5);padding:8px 14px;border-radius:10px;max-width:340px;line-height:1.4}
+
+  /* Score band */
+  .scoreband{
+    display:grid;grid-template-columns:220px 1fr;gap:26px;align-items:center;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px 30px;margin-bottom:28px;box-shadow:var(--shadow);
+  }
+  @media(max-width:820px){.scoreband{grid-template-columns:1fr}}
+  .gauge{position:relative;width:190px;height:190px;margin:0 auto}
+  .gauge svg{transform:rotate(-90deg)}
+  .gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .gauge .num{font-size:44px;font-weight:bold;line-height:1;color:var(--green)}
+  .gauge .pct{font-size:16px;color:var(--muted)}
+  .gauge .tag{font-family:Arial,sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;margin-top:6px;color:var(--muted)}
+  .sidestats h2{font-family:Arial,sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+  .statline{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);font-family:Arial,sans-serif;font-size:14px}
+  .statline:last-child{border-bottom:none}
+  .statline b{font-family:Georgia,serif}
+  .verdict{display:inline-block;font-family:Arial,sans-serif;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:4px 12px;border-radius:20px;color:#fff;margin-top:14px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+  .chead{padding:18px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfaf6,#f6f3ec)}
+  .chead .t{font-size:19px;color:var(--green)}
+  .chead .t small{display:block;font-family:Arial,sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+
+  /* Criterio row */
+  .crit{padding:16px 22px;border-bottom:1px dashed var(--line)}
+  .crit:last-child{border-bottom:none}
+  .crit .ctop{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:12px}
+  .crit .cname{font-size:16px;color:var(--ink)}
+  .crit .cname small{display:block;font-family:Arial,sans-serif;font-size:11px;color:var(--accent);margin-top:2px;letter-spacing:.05em;text-transform:uppercase}
+  .crit .cres{font-family:Georgia,serif;font-size:22px;font-weight:bold;flex:0 0 auto;min-width:48px;text-align:right}
+  .scale{display:flex;gap:7px;flex-wrap:wrap}
+  .sbtn{
+    font-family:Arial,sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+    width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:#fbfaf6;color:var(--muted);transition:.12s;
+  }
+  .sbtn:hover{border-color:var(--accent)}
+  .sbtn.sel{background:var(--green);border-color:var(--green);color:#fff;transform:scale(1.05)}
+  .rubricbtn{font-family:Arial,sans-serif;font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;margin-top:9px;text-decoration:underline;padding:0}
+  .rubric{display:none;margin-top:10px;background:#fbfaf6;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:Arial,sans-serif;font-size:12px;line-height:1.55;color:var(--ink)}
+  .rubric.open{display:block}
+  .rubric .lvl{margin-bottom:6px}
+  .rubric .lvl b{color:var(--green)}
+  .evidence{margin-top:10px}
+  .evidence textarea{width:100%;font-family:Arial,sans-serif;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical;min-height:40px;background:#fff}
+  .evidence label{font-family:Arial,sans-serif;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);font-weight:700;display:block;margin-bottom:4px}
+
+  /* Candados */
+  .lock{padding:14px 22px;border-bottom:1px dashed var(--line);display:flex;justify-content:space-between;align-items:center;gap:14px}
+  .lock:last-child{border-bottom:none}
+  .lock .lname{font-size:15px}
+  .lock .lname small{display:block;font-family:Arial,sans-serif;font-size:11px;color:var(--muted);margin-top:2px}
+  .lockbtn{font-family:Arial,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--ok);background:var(--ok);color:#fff;padding:8px 14px;border-radius:8px;transition:.15s;white-space:nowrap}
+  .lockbtn.violated{border-color:var(--bad);background:var(--bad)}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-family:Arial,sans-serif;font-size:12px;color:var(--muted);margin:8px 0 0;justify-content:center}
+  .legend span{display:flex;align-items:center;gap:7px}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  .actions{display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+  button.act{font-family:Arial,sans-serif;font-size:13px;letter-spacing:.04em;cursor:pointer;border:1px solid var(--green);background:var(--green);color:#fff;padding:11px 22px;border-radius:10px;transition:.2s}
+  button.act.ghost{background:transparent;color:var(--green)}
+  button.act:disabled{opacity:.5;cursor:not-allowed}
+  button.act:hover:not(:disabled){background:var(--green-deep);border-color:var(--green-deep);color:#fff}
+  .note{font-family:Arial,sans-serif;font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.6}
+  .alertbox{background:rgba(181,58,46,.1);border:1px solid var(--bad);color:var(--bad);font-family:Arial,sans-serif;font-size:13px;padding:14px 18px;border-radius:12px;margin-bottom:24px;display:none;font-weight:700;text-align:center}
+  .alertbox.show{display:block}
+
+  /* ===== Fase 2: barra de sesión, login PIN y toast ===== */
+  .sessionbar{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:10px 18px;margin-bottom:18px;font-family:Arial,sans-serif;font-size:12px;box-shadow:var(--shadow);
+  }
+  .sessionbar .who{color:var(--muted)}
+  .sessionbar .who b{color:var(--green);font-family:Georgia,serif;font-size:14px}
+  .sessionbar .sync{color:var(--muted);font-size:11px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-left:6px}
+  .pill.on{background:rgba(46,125,79,.12);color:var(--ok)}
+  .pill.off{background:rgba(107,100,87,.12);color:var(--muted)}
+
+  .evalbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 18px;margin-bottom:18px;font-family:Arial,sans-serif;font-size:12px;box-shadow:var(--shadow)}
+  .evalbar .who{color:var(--muted)}
+  .evalbar select{font-family:Georgia,serif;font-size:15px;color:var(--green);border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:#fff;cursor:pointer;margin-left:6px}
+  .evalbar .pend{color:var(--muted)} .evalbar .pend b{color:var(--green);font-family:Georgia,serif;font-size:14px}
+
+  .overlay{
+    position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,rgba(22,41,74,.96),rgba(31,56,100,.96));padding:20px;
+  }
   .overlay.hidden{display:none}
-  .loginbox{background:var(--card);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.4);width:100%;max-width:390px;padding:34px 30px;text-align:center}
+  .loginbox{
+    background:var(--card);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);
+    width:100%;max-width:380px;padding:34px 30px;text-align:center;
+  }
   .loginbox .eyebrow{font-family:Arial,sans-serif;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:700}
-  .loginbox h2{font-family:Georgia,serif;font-size:23px;color:var(--navy);margin:8px 0 4px}
+  .loginbox h2{font-family:Georgia,serif;font-size:23px;color:var(--green);margin:8px 0 4px}
   .loginbox p{font-family:Arial,sans-serif;font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:20px}
-  .loginbox input{width:100%;font-family:Arial,sans-serif;font-size:22px;letter-spacing:.4em;text-align:center;padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:14px}
-  .loginbox button{width:100%;font-family:Arial,sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:none;background:var(--navy);color:#fff;padding:13px;border-radius:10px}
-  .loginbox button:hover{background:var(--navy-deep)}
+  .loginbox input{
+    width:100%;font-family:Arial,sans-serif;font-size:22px;letter-spacing:.4em;text-align:center;
+    padding:12px;border:1px solid var(--line);border-radius:10px;margin-bottom:14px;
+  }
+  .loginbox button{
+    width:100%;font-family:Arial,sans-serif;font-size:14px;font-weight:700;cursor:pointer;
+    border:none;background:var(--green);color:#fff;padding:13px;border-radius:10px;transition:.2s;
+  }
+  .loginbox button:hover{background:var(--green-deep)}
   .loginbox .msg{font-family:Arial,sans-serif;font-size:12.5px;margin-top:14px;min-height:18px}
-  .loginbox .msg.err{color:var(--bad)} .loginbox .msg.info{color:var(--muted)}
-  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);background:var(--navy-deep);color:#fff;font-family:Arial,sans-serif;font-size:13px;padding:13px 22px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);opacity:0;transition:.25s;z-index:1100;max-width:90vw;text-align:center}
+  .loginbox .msg.err{color:var(--bad)}
+  .loginbox .msg.info{color:var(--muted)}
+
+  .toast{
+    position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(80px);
+    background:var(--green-deep);color:#fff;font-family:Arial,sans-serif;font-size:13px;
+    padding:13px 22px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);
+    opacity:0;transition:.25s;z-index:1100;max-width:90vw;text-align:center;
+  }
   .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-  .toast.err{background:var(--bad)} .toast.ok{background:var(--ok)}
-  .logout-btn{position:fixed;top:10px;right:14px;z-index:1200;font-family:Arial,sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.15);color:#fff;padding:6px 12px;border-radius:8px;display:none}
+  .toast.err{background:var(--bad)}
+  .toast.ok{background:var(--ok)}
+  .logout-btn{position:fixed;top:12px;right:14px;z-index:900;font-family:Arial,sans-serif;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:rgba(255,255,255,.92);color:var(--muted);padding:6px 12px;border-radius:8px;display:none}
   .logout-btn.show{display:block}
-  .logout-btn:hover{background:rgba(255,255,255,.28)}
+  .logout-btn:hover{color:var(--bad);border-color:var(--bad)}
 </style>
 </head>
 <body>
 
-<!-- ===== LOGIN PIN DE DIRECCIÓN ===== -->
+<!-- ===== LOGIN POR PIN (Fase 2) ===== -->
 <div class="overlay" id="loginOverlay">
   <div class="loginbox">
-    <div class="eyebrow">Recouromex · Centro de Mando</div>
-    <h2>Acceso de Dirección</h2>
-    <p>Tablero privado. Ingresa tu PIN de Dirección para ver el consolidado del mes.</p>
+    <div class="eyebrow">Recouromex · Comité de Cultura</div>
+    <h2>Acceso del evaluador</h2>
+    <p>Ingresa tu PIN personal. Identifica quién del comité está evaluando este periodo.</p>
     <input id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
     <button id="pinBtn">Entrar</button>
     <div class="msg info" id="loginMsg">Conectando…</div>
   </div>
 </div>
+
 <div id="toast" class="toast"></div>
 <button class="logout-btn" id="logoutBtn" onclick="cerrarSesion()">Cerrar sesión</button>
 
-<div class="topbar">
-  <div>
-    <div class="eyebrow">Recouromex · Centro de Mando · Dirección General</div>
-    <h1>SGC-Rec · Sistema de Gestión Corporativo <span class="demo-badge" id="liveBadge">Sin conectar</span></h1>
-  </div>
-  <div class="period">
-    <div class="lbl">Periodo de gestión</div>
-    <select id="periodSel">
-      <option>Enero 2026</option><option>Febrero 2026</option><option>Marzo 2026</option><option>Abril 2026</option>
-      <option>Mayo 2026</option><option>Junio 2026</option><option>Julio 2026</option>
-      <option>Agosto 2026</option><option>Septiembre 2026</option><option>Octubre 2026</option>
-      <option>Noviembre 2026</option><option>Diciembre 2026</option>
-    </select>
-  </div>
-</div>
 <div class="wrap">
-  <div class="sectitle"><h2>Resultados agrupados <span>· el pulso de cada área este mes</span></h2></div>
-  <div class="modgrid" id="modGrid"></div>
-  <div class="sectitle"><h2>Tablero de decisiones <span>· acciones consolidadas para ejecutar y dispersar al equipo</span></h2></div>
-  <div class="decision">
-    <div class="dhead">
-      <div class="t"><small>Consolidado automático de todos los módulos</small>¿Qué ejecuto este mes?</div>
-      <div class="counts">
-        <div><div class="n" id="cAlta" style="color:var(--bad)">0</div><div class="l">Alta</div></div>
-        <div><div class="n" id="cMedia" style="color:var(--warn)">0</div><div class="l">Media</div></div>
-        <div><div class="n" id="cBaja" style="color:var(--ok)">0</div><div class="l">Baja</div></div>
-        <div><div class="n" id="cPend">0</div><div class="l">Pendientes</div></div>
+  <!-- Barra de sesión (Fase 2) -->
+  <div class="sessionbar">
+    <div class="who">Evaluador en sesión: <b id="sessUser">—</b><span class="pill off" id="sessPill">sin sesión</span></div>
+    <div class="sync">Periodo activo: <b id="sessPeriodo">—</b> · <span id="syncState">sincronización en pausa</span></div>
+  </div>
+
+  <!-- Selector de colaborador a evaluar + pendientes -->
+  <div class="evalbar">
+    <div class="who">Evaluar a: <select id="colabSel"></select></div>
+    <div class="pend" id="pendInfo">—</div>
+  </div>
+
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Recouromex · Evaluación de Cultura</div>
+      <h1>Apego a la Cultura — Comité Evaluador</h1>
+      <div class="sub">Plan piloto · Manual de Cultura v1.0 · Evaluación mensual</div>
+    </div>
+    <div class="person">
+      <div class="lbl">Colaborador evaluado</div>
+      <div class="name" id="evalName">—</div>
+      <div class="role" id="evalRole">—</div>
+    </div>
+  </header>
+
+  <div class="committee">
+    <div>
+      <div class="ctitle">Comité evaluador del periodo</div>
+      <div class="members" id="members"></div>
+    </div>
+    <div class="recusenote" id="recuseNote"></div>
+  </div>
+
+  <div class="alertbox" id="alertBox"></div>
+
+  <section class="scoreband">
+    <div class="gauge">
+      <svg width="190" height="190" viewBox="0 0 190 190">
+        <circle cx="95" cy="95" r="80" fill="none" stroke="#e7e1d5" stroke-width="15"/>
+        <circle id="arc" cx="95" cy="95" r="80" fill="none" stroke="var(--ok)" stroke-width="15" stroke-linecap="round" stroke-dasharray="503" stroke-dashoffset="503"/>
+      </svg>
+      <div class="val">
+        <div class="num" id="cultNum">0</div>
+        <div class="pct">% apego</div>
+        <div class="tag">Resultado de cultura</div>
       </div>
     </div>
-    <div class="filterbar" id="filterBar"></div>
-    <table class="dtable">
-      <thead><tr><th>Módulo</th><th>Acción a tomar</th><th>Prioridad</th><th>Responsable</th><th>Decisión</th><th></th></tr></thead>
-      <tbody id="decBody"></tbody>
-    </table>
-    <div class="addaction">
-      <select id="aMod"></select>
-      <input class="grow" id="aTxt" placeholder="Nueva decisión manual...">
-      <select id="aPrio"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select>
-      <input id="aOwner" placeholder="Responsable" style="width:140px">
-      <button onclick="addAction()">Agregar</button>
+    <div class="sidestats">
+      <h2>Resumen del periodo</h2>
+      <div class="statline"><span>Promedio de los 8 criterios</span><b id="avgPts">0.0 / 5</b></div>
+      <div class="statline"><span>Criterio más fuerte</span><b id="topCrit">—</b></div>
+      <div class="statline"><span>Criterio a desarrollar</span><b id="lowCrit">—</b></div>
+      <div class="statline"><span>Candados de integridad</span><b id="lockState">Sin violaciones ✓</b></div>
+      <div class="statline"><span>Destino · 50% Ef. de Puesto mensual</span><b id="destEP">0%</b></div>
+      <div class="statline"><span>Destino · Candado PCE</span><b id="destPCE">0%</b></div>
+      <div><span class="verdict" id="verdict">—</span></div>
     </div>
+  </section>
+
+  <section class="card">
+    <div class="chead"><div class="t"><small>Capa 1 · 8 criterios · escala 1–5 · peso igual</small>Conductas observables del Manual</div></div>
+    <div id="critList"></div>
+  </section>
+
+  <section class="card">
+    <div class="chead"><div class="t"><small>Capa 2 · Líneas que jamás se cruzan</small>Candados de integridad</div></div>
+    <div id="lockList"></div>
+  </section>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--ok)"></i> Apegado ≥ 80%</span>
+    <span><i class="dot" style="background:var(--warn)"></i> En observación 60–79%</span>
+    <span><i class="dot" style="background:var(--bad)"></i> No alineado &lt; 60%</span>
   </div>
-  <div class="actions-global">
-    <button class="ghost" onclick="loadLive()">Actualizar datos</button>
-    <button onclick="window.print()">Exportar tablero del mes (PDF)</button>
-    <button class="ghost" onclick="cerrarMes()">Cerrar mes y archivar</button>
+
+  <div class="actions">
+    <button class="act" id="saveBtn">Guardar evaluación</button>
+    <button class="act" onclick="window.print()">Exportar / Imprimir PDF</button>
+    <button class="act ghost" onclick="resetAll()">Reiniciar evaluación</button>
   </div>
-  <p class="config-note">
-    <b>Tablero privado de Dirección.</b> Lee en vivo el pulso de tus herramientas y consolida todas las acciones del mes en un solo lugar.
-    Tus decisiones manuales y lo marcado como "hecho" se guardan solo en este equipo. <span id="syncInfo">—</span>
+
+  <p class="note">
+    El comité califica cada criterio <b>por consenso</b> contra la rúbrica fija (no a ojo).<br>
+    Cuando se evalúa a un miembro del comité, esa persona <b>se recusa</b> y Dirección entra como suplente.<br>
+    Un candado violado <b>anula el resultado</b> sin importar el promedio. Resultado = (suma de los 8 ÷ 40) × 100.
   </p>
-</div>
-
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
-    <div class="mh" id="modalTitle">Nueva sección</div>
-    <div class="mb">
-      <div><label>Nombre del módulo</label><input id="nmName" placeholder="Ej. Seguridad e Higiene"></div>
-      <div><label>Categoría / subtítulo</label><input id="nmCat" placeholder="Ej. Cumplimiento NOM"></div>
-      <div><label>Enlace a la herramienta (opcional)</label><input id="nmUrl" placeholder="https://..."></div>
-      <div><label>Color de acento</label>
-        <select id="nmColor">
-          <option value="#2E75B6">Azul Recouromex</option>
-          <option value="#2e7d4f">Verde</option>
-          <option value="#c9952b">Ámbar</option>
-          <option value="#7a4fb5">Morado</option>
-          <option value="#b53a2e">Rojo</option>
-          <option value="#0f8a8a">Teal</option>
-        </select>
-      </div>
-    </div>
-    <div class="mf">
-      <button class="cancel" onclick="closeModal()">Cancelar</button>
-      <button class="primary" onclick="saveModule()">Crear sección</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-bg" id="peBg">
-  <div class="modal pe-modal" style="max-width:520px">
-    <div class="mh">Crear Proyecto Especial · para Alma</div>
-    <div class="mb">
-      <div class="pe-grid">
-        <div class="full"><label>Nombre del proyecto</label><input id="peName" oninput="buildPEText()"></div>
-        <div><label>Responsable</label><input id="peResp" oninput="buildPEText()"></div>
-        <div><label>Prioridad</label>
-          <select id="pePrio" onchange="buildPEText()"><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option></select></div>
-        <div><label>Proceso afectado</label><input id="peProc" oninput="buildPEText()" placeholder="Ej. Crédito y Cobranza"></div>
-        <div><label>Fecha límite</label><input id="peFecha" type="date" oninput="buildPEText()"></div>
-        <div class="full"><label>Fuente</label><input id="peFuente" oninput="buildPEText()"></div>
-        <div class="full"><label>Descripción</label><textarea class="modal-ta" id="peDesc" oninput="buildPEText()"></textarea></div>
-      </div>
-      <div><label>Texto listo para copiar</label><div class="pe-output" id="peOut"></div></div>
-    </div>
-    <div class="mf">
-      <span id="peCopied" class="copied"></span>
-      <button class="cancel" onclick="closePE()">Cerrar</button>
-      <button class="primary" onclick="copyPE()">Copiar para Alma</button>
-    </div>
-  </div>
 </div>
 
 <script>
 /* =====================================================================
    ███  CONFIG — EDITA SOLO ESTE BLOQUE  ███
-   Rodrigo pega la URL y la ANON key del proyecto (solo lectura).
-   NO uses la service_role key.
+   Rodrigo pega aquí la URL y la ANON key del proyecto Supabase donde
+   corriste cultura_fase1.sql. NO uses la service_role key, solo la anon.
+   (El paquete dice proyecto qcwpnovwyhzhqqmhjxco — verifica que la URL
+   corresponda a ESE proyecto y no al de Inventario.)
    ===================================================================== */
 const CONFIG = {
-  SUPABASE_URL:      "https://qcwpnovwyhzhqqmhjxco.supabase.co",   // ej: https://qcwpnovwyhzhqqmhjxco.supabase.co
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjd3Bub3Z3eWh6aHFxbWhqeGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDA3OTUsImV4cCI6MjA5NTI3Njc5NX0.-MSnn07PdxstQ90OLf16823Nvihr47ePXoQSFvgC3mU",          // la llave pública (anon)
-  // 2ª conexión: proyecto de INVENTARIO (vbzitecyimcalorywiwr), distinto al principal — solo lectura del resumen
-  INV_SUPABASE_URL:      "https://vbzitecyimcalorywiwr.supabase.co",  // proyecto de inventario (fijo)
-  INV_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZieml0ZWN5aW1jYWxvcnl3aXdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDk4NjQsImV4cCI6MjA5NDgyNTg2NH0.qdZItXNc2Ck4kilUHWeTi_KHZ9Ptfui3mU_eV8k7ZaA",         // Rodrigo la inyecta (anon del 2º proyecto)
-  STORAGE_KEY:       "sgc_rec_v2"
+  SUPABASE_URL:      "PEGAR_AQUI_LA_URL_DE_SUPABASE",   // ej: https://qcwpnovwyhzhqqmhjxco.supabase.co
+  SUPABASE_ANON_KEY: "PEGAR_AQUI_LA_ANON_KEY",          // la llave pública (anon)
+  PERIODO:           ""                                  // vacío = mes actual (YYYY-MM). Ej fijo: "2026-05"
 };
 /* ===================================================================== */
 
-let db=null, dbInv=null;
+/* ---- Estado de conexión / sesión ---- */
+let db = null;
+const SESSION = { pin:null, evalId:null, evalNombre:null, evalRol:null };
+let PERIODO = CONFIG.PERIODO || (()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+let DATA = { evaluadores:[], colaboradores:[], evaluado:null, evaluadosPeriodo:new Set() };   // se llenan desde Supabase
+let dirty = false;                              // hay cambios locales sin guardar
+let syncTimer = null;
 const cfgOK = CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.startsWith("PEGAR")
            && CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith("PEGAR");
-const cfgInvOK = CONFIG.INV_SUPABASE_URL && !CONFIG.INV_SUPABASE_URL.startsWith("PEGAR")
-           && CONFIG.INV_SUPABASE_ANON_KEY && !CONFIG.INV_SUPABASE_ANON_KEY.startsWith("PEGAR");
 
-/* Periodo: por defecto el mes en curso */
-const MESES={Enero:'01',Febrero:'02',Marzo:'03',Abril:'04',Mayo:'05',Junio:'06',Julio:'07',Agosto:'08',Septiembre:'09',Octubre:'10',Noviembre:'11',Diciembre:'12'};
-const MESES_INV=Object.fromEntries(Object.entries(MESES).map(([k,v])=>[v,k]));
-function periodoActualLabel(){ const d=new Date(); return (MESES_INV[String(d.getMonth()+1).padStart(2,'0')])+' '+d.getFullYear(); }
-function labelToPeriodo(lbl){ const p=String(lbl).split(' '); return (p[1]||'2026')+'-'+(MESES[p[0]]||'06'); }
+/* ---- RÚBRICA · 8 CRITERIOS (anclados al Manual — NO cambiar metodología) ---- */
+const criterios = [
+  {nm:"Hace lo que dice", sec:"Principio I", s:0, ev:"",
+   r5:"Cumple todo lo prometido; cuando algo se desvía, avisa antes con tiempo de reacción.",
+   r3:"Cumple la mayoría; a veces avisa de retrasos justo a tiempo o apenas tarde.",
+   r1:"Incumple compromisos y los justifica después; el equipo se entera cuando ya explotó."},
+  {nm:"Habla con claridad y sin miedo", sec:"Principio II", s:0, ev:"",
+   r5:"Da feedback directo de frente, con datos y solución; recibe crítica sin defensiva.",
+   r3:"Comunica lo importante pero a veces evita la conversación incómoda o reacciona defensivo.",
+   r1:"Guarda información por temor; comenta por la espalda; feedback ausente o sin propuesta."},
+  {nm:"Opera con los más altos estándares", sec:"Principio III", s:0, ev:"",
+   r5:"Revisa antes de entregar, mejora activa, conoce y sigue sus indicadores, no repite errores.",
+   r3:"Entrega bien pero sin pulir; conoce métricas pero no siempre actúa sobre ellas.",
+   r1:"Entrega a medias justificando el tiempo; ignora métricas; repite errores sin ajustar."},
+  {nm:"Trabaja como equipo, no como individuo", sec:"Principio IV", s:0, ev:"",
+   r5:"Comparte información útil, apoya en alta carga, celebra logros colectivos, prioriza objetivo común.",
+   r3:"Colabora cuando se lo piden; cumple lo suyo sin obstaculizar al resto.",
+   r1:"Acapara información como poder; compite internamente; se atribuye logros colectivos."},
+  {nm:"Dice la verdad", sec:"Principio V", s:0, ev:"",
+   r5:"Reporta resultados reales aunque sean malos; reconoce errores; transparente con avances.",
+   r3:"Honesto pero a veces minimiza problemas propios o suaviza malas noticias.",
+   r1:"Distorsiona indicadores; oculta problemas; promete lo que no puede cumplir."},
+  {nm:"Comunicación eficaz", sec:"Sección 10 · No Negociable", s:0, ev:"",
+   r5:"Confirma recepción <2h, reporta avances proactivo, cierra ciclos, escala riesgos a tiempo, canal correcto.",
+   r3:"Comunica bien en general pero a veces deja tareas sin cierre o reporta solo cuando preguntan.",
+   r1:"Lee sin confirmar, informa incumplimientos cuando ya ocurrieron, deja temas en el aire."},
+  {nm:"Trato personal y liderazgo de servicio", sec:"Sección 05", s:0, ev:"",
+   r5:"Trata a todos con dignidad, escucha activa, reconoce en público y corrige en privado, elimina obstáculos a su equipo.",
+   r3:"Trato respetuoso estándar; cumple sin destacar en desarrollo de otros.",
+   r1:"Usa jerarquía para presionar o humillar; no escucha; no invierte en su gente."},
+  {nm:"Construcción de clima", sec:"Sección 09", s:0, ev:"",
+   r5:"Reconoce logros, mantiene carga sostenible, comunica contexto, resuelve conflictos de frente.",
+   r3:"Mantiene un clima neutro; no daña pero tampoco construye activamente.",
+   r1:"Daña el clima: urgencia permanente, opacidad, conflictos sin resolver."},
+];
 
-/* Estado: módulos manuales (inv, pce, custom) + overlay de decisiones + acciones manuales */
-let state = {
-  period: periodoActualLabel(),
-  modules:[
-    {id:"inv",name:"Inventarios Importados",cat:"Kardex · inventario en línea",color:"#0f8a8a",url:"https://creartgolden-max.github.io/inventario-rec/",pulso:"optimo",
-     m1:{v:"—",k:"Incongruencias"},m2:{v:"—",k:"Bajo mínimo"},
-     note:"Inventario en línea · resumen de la última semana cerrada.",actions:[]},
-    {id:"pce",name:"PCE · Alma",cat:"Plan de crecimiento · solo Alma",color:"#1F3864",url:"https://creartgolden-max.github.io/pce-rec/",pulso:"riesgo",
-     m1:{v:"—",k:"PCE global"},m2:{v:"—",k:"Pts cultura"},
-     note:"Piloto único hasta dic 2026. Integra KPI, cultura y avance de proyectos de Alma. Conversación 1-a-1 pendiente.",
-     actions:[{txt:"Sesión <b>1-a-1 de crecimiento</b> con Alma (PCE del mes)",prio:"alta",owner:"Rodrigo",done:false}]},
-  ],
-  manualActions:{},   // {modId: [actions]} añadidas por Rodrigo a módulos en vivo
-  overlay:{}          // {modId::txt: {done, decision, decExtra, pe, peReady}}
-};
-const LIVE_IDS=['gpr','cult','rev','vta','inv'];
+/* ---- CANDADOS DE INTEGRIDAD (orden: acoso, seguridad, laico — igual que el SQL) ---- */
+const candados = [
+  {nm:"Cero Acoso", sec:"Sección 06", sub:"Cualquier conducta de acoso confirmada (laboral, sexual, digital, discriminación, represalia).", violated:false},
+  {nm:"Seguridad de la información", sec:"Sección 08", sub:"Compartir datos confidenciales o contraseñas, mal uso de activos de la empresa.", violated:false},
+  {nm:"Ambiente laico", sec:"Sección 07", sub:"Proselitismo o decisiones laborales basadas en afinidad de creencias.", violated:false},
+];
 
-const pulsoMeta={optimo:{label:"Óptimo",color:"var(--ok)"},riesgo:{label:"Atención",color:"var(--warn)"},critico:{label:"Crítico",color:"var(--bad)"}};
-const prioOrder={alta:0,media:1,baja:2};
-let filter="todas";
+function color(v){ return v>=80?'var(--ok)': v>=60?'var(--warn)':'var(--bad)'; }
 
-function save(){ try{ localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
-function load(){ try{ const d=localStorage.getItem(CONFIG.STORAGE_KEY); if(d){ const s=JSON.parse(d); state=Object.assign(state,s); state.manualActions=state.manualActions||{}; state.overlay=state.overlay||{}; } }catch(e){} const FU={pce:'https://creartgolden-max.github.io/pce-rec/',inv:'https://creartgolden-max.github.io/inventario-rec/'}; (state.modules||[]).forEach(m=>{ if(FU[m.id]) m.url=FU[m.id]; }); }
+/* ---------------------------------------------------------------------
+   RENDER COMITÉ (con recusación basada en datos reales de Supabase)
+   - Miembros = evaluadores con rol "Miembro"
+   - Suplente = evaluador con rol "Suplente Dirección"
+   - Se recusa el miembro cuyo id == id del colaborador evaluado (es_comite)
+   --------------------------------------------------------------------- */
+function renderCommittee(){
+  const el=document.getElementById('members');
+  el.innerHTML='';
+  const miembros = DATA.evaluadores.filter(e=>e.rol==='Miembro');
+  const suplente = DATA.evaluadores.find(e=>e.rol==='Suplente Dirección');
+  const recusadoId = (DATA.evaluado && DATA.evaluado.es_comite) ? DATA.evaluado.id : null;
 
-function toast(msg,kind){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(kind?(' '+kind):''); clearTimeout(t._h); t._h=setTimeout(()=>{t.className='toast';},3800); }
-function setBadge(txt,color){ const b=document.getElementById('liveBadge'); if(b){ b.textContent=txt; b.style.background=color; } }
-
-/* ---- Overlay de decisiones (persiste por clave módulo::texto) ---- */
-function stripHtml(s){ return String(s||'').replace(/<[^>]+>/g,'').trim(); }
-function aKey(modId,txt){ return modId+'::'+stripHtml(txt); }
-function applyOverlay(mod){
-  state.overlay=state.overlay||{};
-  (mod.actions||[]).forEach(a=>{ const o=state.overlay[aKey(mod.id,a.txt)]; if(o){ a.done=!!o.done; if(o.decision!==undefined)a.decision=o.decision; if(o.decExtra!==undefined)a.decExtra=o.decExtra; if(o.pe!==undefined)a.pe=o.pe; if(o.peReady!==undefined)a.peReady=o.peReady; } });
-}
-function writeOverlay(modId,a){
-  state.overlay=state.overlay||{};
-  state.overlay[aKey(modId,a.txt)]={done:!!a.done,decision:a.decision,decExtra:a.decExtra,pe:a.pe,peReady:a.peReady};
-}
-
-/* =====================================================================
-   LECTURAS EN VIVO (solo SELECT)
-   ===================================================================== */
-async function readRevisiones(P){
-  const [procRes, revRes] = await Promise.all([
-    db.from('rev_procesos').select('id,nombre'),
-    db.from('rev_revisiones').select('proceso_id,estado,disonancia,retar,accion').eq('periodo',P)
-  ]);
-  if(procRes.error) throw procRes.error; if(revRes.error) throw revRes.error;
-  const nm={}; (procRes.data||[]).forEach(p=>nm[p.id]=p.nombre);
-  const rows=revRes.data||[];
-  let col=0,rie=0,opt=0,dis=0,ret=0,cap=0; const actions=[];
-  rows.forEach(r=>{
-    const pn=nm[r.proceso_id]||r.proceso_id;
-    if(r.estado && r.estado!=='pendiente') cap++;
-    if(r.estado==='colapsado'){ col++; actions.push({txt:`<b>Plan de Rescate</b> · ${pn}`,prio:'alta',owner:'Alma + Coord.',done:false}); }
-    else if(r.estado==='riesgo'){ rie++; actions.push({txt:`<b>Plan de Mejora</b> · ${pn}`,prio:'media',owner:'Alma + Coord.',done:false}); }
-    else if(r.estado==='optimo'){ opt++; }
-    if(r.disonancia){ dis++; actions.push({txt:`⚑ <b>Acompañamiento</b> · ${pn} (números ok, persona en alerta)`,prio:'alta',owner:'Rodrigo',done:false}); }
-    if(r.retar){ ret++; actions.push({txt:`<b>Reta Estratégica</b> · ${pn} (3 meses al 100%)`,prio:'baja',owner:'Rodrigo',done:false}); }
+  miembros.forEach(m=>{
+    const isRec = m.id===recusadoId;
+    const d=document.createElement('div');
+    d.className='mem'+(isRec?' recused':'');
+    d.innerHTML=`${m.nombre}<span class="mrole">${isRec?'Recusado · es evaluado':'Miembro del comité'}</span>`;
+    el.appendChild(d);
   });
-  const pulso = col>0?'critico':((rie>0||dis>0)?'riesgo':'optimo');
-  const note = rows.length===0 ? 'Sin capturas de triage este mes.' :
-    `${col} colapsados · ${rie} en riesgo · ${opt} óptimos · ${dis} disonancias · ${cap}/${rows.length} procesos evaluados.`;
-  return {id:'rev',name:'Revisiones Macro y Micro',cat:'Tablero de triage',color:'#c9952b',url:'https://creartgolden-max.github.io/revisiones-rec/',pulso,
-    m1:{v:String(col),k:'Colapsados'}, m2:{v:String(dis),k:'Disonancias'}, note, actions};
+
+  if(recusadoId && suplente){
+    const d=document.createElement('div');
+    d.className='mem';
+    d.style.borderColor='rgba(201,149,43,.7)';
+    d.innerHTML=`${suplente.nombre}<span class="mrole">Dirección · Suplente</span>`;
+    el.appendChild(d);
+    const rec = miembros.find(m=>m.id===recusadoId);
+    document.getElementById('recuseNote').innerHTML=
+      `<b>Recusación activa:</b> ${rec?rec.nombre:DATA.evaluado.nombre} es evaluado(a) este periodo, por lo que se recusa. Dirección (${suplente.nombre}) entra como tercer evaluador. Consenso mantenido a 3.`;
+  } else {
+    document.getElementById('recuseNote').innerHTML='Sin recusaciones · el comité base evalúa por consenso.';
+  }
 }
 
-async function readCultura(P){
-  const [colRes, evRes] = await Promise.all([
-    db.from('cult_colaboradores').select('id,nombre'),
-    db.from('cult_evaluaciones').select('colaborador_id,resultado,k_acoso,k_seguridad,k_laico').eq('periodo',P)
-  ]);
-  if(colRes.error) throw colRes.error; if(evRes.error) throw evRes.error;
-  const nm={}; (colRes.data||[]).forEach(c=>nm[c.id]=c.nombre);
-  const rows=evRes.data||[]; const actions=[]; let cand=0, low=0; const vals=[];
-  rows.forEach(r=>{
-    const who=nm[r.colaborador_id]||r.colaborador_id;
-    const viol = r.k_acoso||r.k_seguridad||r.k_laico;
-    if(r.resultado!=null) vals.push(r.resultado);
-    if(viol){ cand++; actions.push({txt:`⚠ <b>Escalar candado de integridad</b> · ${who}`,prio:'alta',owner:'Rodrigo / RH',done:false}); }
-    if(r.resultado!=null && r.resultado<80){ low++; actions.push({txt:`Plan de desarrollo · ${who} (apego ${r.resultado}%)`,prio:'media',owner:'Rodrigo',done:false}); }
-  });
-  const apego = vals.length? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length)+'%' : '—';
-  const pulso = cand>0?'critico':(low>0?'riesgo':'optimo');
-  const note = rows.length===0 ? 'Sin evaluaciones de cultura este mes.' :
-    `${rows.length} evaluado(s) · apego prom. ${apego} · ${cand} candado(s) · ${low} bajo 80%.`;
-  return {id:'cult',name:'Apego a la Cultura',cat:'Comité evaluador',color:'#7a4fb5',url:'https://creartgolden-max.github.io/comite-cultura-rec/',pulso,
-    m1:{v:apego,k:'Apego prom.'}, m2:{v:String(cand),k:'Candados'}, note, actions};
+/* Lista de ids que participan / se recusan en este periodo */
+function recusadosIds(){
+  return (DATA.evaluado && DATA.evaluado.es_comite) ? [DATA.evaluado.id] : [];
+}
+function evaluadoPorIds(){
+  const rec = recusadosIds();
+  const activos = DATA.evaluadores
+    .filter(e=>e.rol==='Miembro' && !rec.includes(e.id))
+    .map(e=>e.id);
+  if(rec.length){
+    const sup = DATA.evaluadores.find(e=>e.rol==='Suplente Dirección');
+    if(sup) activos.push(sup.id);
+  }
+  return activos;
 }
 
-function projProgress(pr){ const h=Array.isArray(pr.hitos)?pr.hitos:[]; if(!h.length) return null; return Math.round(h.filter(x=>x.hecho).length/h.length*100); }
-async function readGestor(P){
-  const projRes = await db.from('gpr_projects').select('id,nombre,revisor,inicio,termino,status,hitos');
-  if(projRes.error) throw projRes.error;
-  const projs=projRes.data||[];
-  const today=new Date().toISOString().slice(0,10);
-  const doneStatus=['Terminado','Completado','Cerrado','Finalizado','Cancelado'];
-  let enRiesgo=0; const progs=[]; const actions=[];
-  projs.forEach(pr=>{
-    const prog=projProgress(pr); if(prog!=null) progs.push(prog);
-    const activo = !doneStatus.includes(pr.status);
-    const vencido = pr.termino && pr.termino<today && activo;
-    const atorado = activo && prog!=null && prog<50 && pr.inicio && pr.inicio<today && !vencido;
-    if(vencido||atorado){
-      enRiesgo++;
-      const detalle=(prog==null?'sin hitos':prog+'%')+(pr.termino?` · vence ${pr.termino}`:'');
-      actions.push({txt:`Destrabar <b>${pr.nombre}</b> (${detalle})`,prio: vencido?'alta':'media',owner: pr.revisor||'—',done:false});
+function renderCriterios(){
+  const el=document.getElementById('critList');
+  el.innerHTML='';
+  criterios.forEach((c,i)=>{
+    const row=document.createElement('div');
+    row.className='crit';
+    let btns='';
+    for(let n=1;n<=5;n++){
+      btns+=`<button class="sbtn${c.s===n?' sel':''}" data-i="${i}" data-n="${n}">${n}</button>`;
     }
+    const showEv = c.s>0 && c.s<=2;
+    row.innerHTML=`
+      <div class="ctop">
+        <div class="cname">${c.nm}<small>${c.sec}</small></div>
+        <div class="cres" style="color:${c.s?color(c.s/5*100):'var(--muted)'}">${c.s||'—'}</div>
+      </div>
+      <div class="scale">${btns}</div>
+      <button class="rubricbtn" data-rub="${i}">Ver rúbrica de niveles ▾</button>
+      <div class="rubric" id="rub${i}">
+        <div class="lvl"><b>Nivel 5 —</b> ${c.r5}</div>
+        <div class="lvl"><b>Nivel 3 —</b> ${c.r3}</div>
+        <div class="lvl"><b>Nivel 1 —</b> ${c.r1}</div>
+        <div class="lvl" style="color:var(--muted)">Niveles 2 y 4 = situaciones intermedias.</div>
+      </div>
+      <div class="evidence" style="display:${showEv?'block':'none'}">
+        <label>Evidencia obligatoria (nota baja)</label>
+        <textarea data-ev="${i}" placeholder="Describir conducta observada y fecha/ejemplo concreto...">${c.ev||''}</textarea>
+      </div>`;
+    el.appendChild(row);
   });
-  const avg = progs.length? Math.round(progs.reduce((a,b)=>a+b,0)/progs.length) : 0;
-  const pulso = enRiesgo>0?'riesgo':'optimo';
-  const note = projs.length===0 ? 'Sin proyectos registrados.' :
-    `${projs.length} proyectos · avance global ${avg}% · ${enRiesgo} en riesgo de fecha.`;
-  return {id:'gpr',name:'Gestor de Proyectos',cat:'Proyectos especiales',color:'#2E75B6',url:'https://creartgolden-max.github.io/gestor-proyectos-rec/',pulso,
-    m1:{v:avg+'%',k:'Avance global'}, m2:{v:String(enRiesgo),k:'En riesgo'}, note, actions};
 }
 
-async function readVentas(P){
-  const money=v=> v==null?'—':'$'+Number(v).toLocaleString('es-MX',{maximumFractionDigits:0});
-  const pa=String(P).split('-'); const anio=parseInt(pa[0],10), mes=parseInt(pa[1],10);
-  const mesNombre=MESES_INV[String(mes).padStart(2,'0')]||P;
-  const [vmRes,mmRes]=await Promise.all([
-    db.from('vta_ventas_marca').select('marca_id,venta_real,venta_anio_anterior').eq('periodo',P),
-    db.from('vta_metas_mensuales').select('meta').eq('marca_id','global').eq('mes',mes).eq('anio',anio).maybeSingle()
-  ]);
-  if(vmRes.error) throw vmRes.error; if(mmRes.error) throw mmRes.error;
-  const vm={}; (vmRes.data||[]).forEach(r=>vm[r.marca_id]=r);
-  const g=vm['global']||{}; const real=(g.venta_real??null);
-  const meta=mmRes.data?(mmRes.data.meta??null):null;
-  let cumpl=null, pulso='optimo';
-  if(real!=null && meta && meta>0){ cumpl=Math.round(real/meta*100); pulso=cumpl>=100?'optimo':(cumpl>=80?'riesgo':'critico'); }
-  const yoy=id=>{ const r=vm[id]; if(!r||r.venta_real==null||!(r.venta_anio_anterior>0)) return null; return Math.round((r.venta_real-r.venta_anio_anterior)/r.venta_anio_anterior*100); };
-  const fmt=d=> d==null?'—':((d>0?'▲+':(d<0?'▼':'■'))+d+'%');
-  const lc=yoy('lc'), br=yoy('br');
-  const actions=[];
-  if(cumpl!=null && cumpl<100){
-    actions.push({txt:`Ventas GLOBAL en ${mesNombre}: <b>${cumpl}%</b> de la meta — revisar plan comercial`, prio: cumpl<80?'alta':'media', owner:'Rodrigo', done:false});
+function renderCandados(){
+  const el=document.getElementById('lockList');
+  el.innerHTML='';
+  candados.forEach((k,i)=>{
+    const row=document.createElement('div');
+    row.className='lock';
+    row.innerHTML=`
+      <div class="lname">${k.nm}<small>${k.sec} · ${k.sub}</small></div>
+      <button class="lockbtn${k.violated?' violated':''}" data-lock="${i}">${k.violated?'⚠ VIOLADO':'✓ Sin violación'}</button>`;
+    el.appendChild(row);
+  });
+}
+
+/* ---- CÁLCULO (intacto): suma de los 8 ÷ 40 × 100; candado anula a 0 ---- */
+function recalc(){
+  const sum=criterios.reduce((s,c)=>s+c.s,0);
+  const rated=criterios.filter(c=>c.s>0).length;
+  let pct = (sum/(criterios.length*5))*100; // % apego sobre total posible (÷40×100)
+
+  const anyLock = candados.some(k=>k.violated);
+  const finalPct = anyLock? 0 : pct;
+
+  document.getElementById('cultNum').textContent=Math.round(finalPct);
+  const arc=document.getElementById('arc');
+  arc.style.strokeDashoffset = 503 - 503*(finalPct/100);
+  arc.style.stroke = anyLock? '#b53a2e' : color(finalPct);
+
+  document.getElementById('avgPts').textContent=(sum/criterios.length).toFixed(1)+' / 5';
+
+  const ratedArr=criterios.filter(c=>c.s>0);
+  if(ratedArr.length){
+    const top=[...ratedArr].sort((a,b)=>b.s-a.s)[0];
+    const low=[...ratedArr].sort((a,b)=>a.s-b.s)[0];
+    document.getElementById('topCrit').textContent=top.nm+' ('+top.s+')';
+    document.getElementById('lowCrit').textContent=low.nm+' ('+low.s+')';
+  } else {
+    document.getElementById('topCrit').textContent='—';
+    document.getElementById('lowCrit').textContent='—';
   }
-  const partes=[];
-  partes.push(cumpl!=null?`GLOBAL ${cumpl}% de meta`:'GLOBAL sin meta/dato este mes');
-  if(lc!=null) partes.push(`LC ${fmt(lc)}`);
-  if(br!=null) partes.push(`BR ${fmt(br)}`);
-  const note=partes.join(' · ')+'.';
-  return {id:'vta',name:'Ventas',cat:'Seguimiento comercial',color:'#2e7d4f',url:'https://creartgolden-max.github.io/ventas-rec/',pulso,
-    m1:{v:(cumpl!=null?cumpl+'%':'—'),k:'GLOBAL vs meta'}, m2:{v:money(real),k:'Vendido del mes'}, note, actions};
-}
 
-/* Inventario: lee del 2º proyecto Supabase (vbzitecyimcalorywiwr) vía dbInv */
-async function readInventario(){
-  if(!dbInv) return null;  // 2ª conexión no configurada (falta inyectar la key)
-  const [invRes, prodRes, concRes, semRes] = await Promise.all([
-    dbInv.from('inventario').select('producto_id,stock_actual'),
-    dbInv.from('productos').select('id,nombre,minimo_lts'),
-    dbInv.from('conciliaciones').select('id_semana,alerta'),
-    dbInv.from('semanas').select('id_semana,estado').eq('estado','CERRADA')
-  ]);
-  for(const r of [invRes,prodRes,concRes,semRes]) if(r.error) throw r.error;
-  // productos bajo mínimo (stock_actual < minimo_lts)
-  const minMap={}, nameMap={}; (prodRes.data||[]).forEach(p=>{ minMap[p.id]=p.minimo_lts; nameMap[p.id]=p.nombre; });
-  let bajo=0; const bajoNombres=[];
-  (invRes.data||[]).forEach(r=>{ const min=minMap[r.producto_id];
-    if(min!=null && r.stock_actual!=null && Number(r.stock_actual)<Number(min)){ bajo++; bajoNombres.push(nameMap[r.producto_id]||r.producto_id); } });
-  // última semana cerrada (id_semana SEM-YYYY-MM-DD ordena lexicográficamente)
-  const cerradas=(semRes.data||[]).map(s=>s.id_semana).sort();
-  const ultima=cerradas.length? cerradas[cerradas.length-1] : null;
-  // incongruencias de la última conciliación
-  const conc=concRes.data||[];
-  const semConc=[...new Set(conc.map(c=>c.id_semana))].sort();
-  const ultimaConc=semConc.length? semConc[semConc.length-1] : null;
-  const incong = ultimaConc? conc.filter(c=>c.id_semana===ultimaConc && c.alerta==='INCONGRUENCIA').length : 0;
-  const pulso = bajo>0 ? 'critico' : (incong>0 ? 'riesgo' : 'optimo');
-  const actions=[];
-  if(bajo>0){ actions.push({txt:`Autorizar compra · <b>${bajo}</b> producto(s) bajo mínimo (${bajoNombres.slice(0,3).join(', ')}${bajoNombres.length>3?'…':''})`,prio:'alta',owner:'Alma',done:false}); }
-  if(incong>=3){ actions.push({txt:`Revisar <b>${incong}</b> incongruencias de la conciliación (${ultimaConc||''})`,prio:'media',owner:'Alma',done:false}); }
-  const note = ultima
-    ? `Última semana cerrada: ${ultima} · ${bajo} bajo mínimo · ${incong} incongruencia(s) en la última conciliación.`
-    : 'Sin semanas cerradas registradas.';
-  return {id:'inv',name:'Inventarios Importados',cat:'Kardex · inventario en línea',color:'#0f8a8a',url:'https://creartgolden-max.github.io/inventario-rec/',pulso,
-    m1:{v:String(incong),k:'Incongruencias'}, m2:{v:String(bajo),k:'Bajo mínimo'}, note, actions};
-}
+  document.getElementById('lockState').innerHTML = anyLock
+    ? '<span style="color:var(--bad)">VIOLACIÓN ACTIVA ⚠</span>'
+    : 'Sin violaciones ✓';
 
-async function loadLive(){
-  if(!db){ toast('Sin conexión','err'); return; }
-  const P=labelToPeriodo(state.period);
-  setBadge('Cargando…','var(--warn)');
-  document.getElementById('syncInfo').textContent='Leyendo datos del periodo '+P+'…';
-  try{
-    const [gpr,cult,rev,vta]=await Promise.all([readGestor(P),readCultura(P),readRevisiones(P),readVentas(P)]);
-    const liveList=[gpr,cult,rev,vta];
-    // Inventario: 2ª conexión Supabase (otro proyecto); si falla o no está configurada, no rompe el resto
-    try{ const inv=await readInventario(); if(inv) liveList.push(inv); }catch(e){ console.warn('inventario:', e.message); }
-    liveList.forEach(live=>{
-      const idx=state.modules.findIndex(m=>m.id===live.id);
-      if(idx>=0 && !live.url && state.modules[idx].url) live.url=state.modules[idx].url; // el código fija las URLs; si no, conservar manual
-      // añadir acciones manuales que Rodrigo agregó a este módulo en vivo
-      (state.manualActions[live.id]||[]).forEach(a=> live.actions.push(Object.assign({},a)));
-      applyOverlay(live);
-      if(idx>=0) state.modules[idx]=live; else state.modules.unshift(live);
-    });
-    save(); renderAll();
-    setBadge('En vivo','var(--ok)');
-    document.getElementById('syncInfo').textContent='Actualizado · periodo '+P;
-  }catch(err){
-    console.error(err); setBadge('Error','var(--bad)');
-    document.getElementById('syncInfo').textContent='No se pudieron leer los datos.';
-    toast('Error al leer datos: '+(err.message||err),'err');
+  document.getElementById('destEP').textContent=Math.round(finalPct)+'%';
+  document.getElementById('destPCE').textContent=Math.round(finalPct)+'%';
+
+  const v=document.getElementById('verdict');
+  if(anyLock){ v.textContent='No alineado · candado violado'; v.style.background='var(--bad)'; }
+  else if(finalPct>=80){ v.textContent='Apegado a la cultura'; v.style.background='var(--ok)'; }
+  else if(finalPct>=60){ v.textContent='En observación'; v.style.background='var(--warn)'; }
+  else if(rated>0){ v.textContent='No alineado'; v.style.background='var(--bad)'; }
+  else { v.textContent='Pendiente de evaluar'; v.style.background='var(--muted)'; }
+
+  const ab=document.getElementById('alertBox');
+  if(anyLock){
+    const viol=candados.filter(k=>k.violated).map(k=>k.nm).join(', ');
+    ab.textContent='⚠ CANDADO DE INTEGRIDAD VIOLADO: '+viol+' — El resultado de cultura se anula a 0%. Escalar a RH / Dirección conforme al Manual.';
+    ab.classList.add('show');
+  } else {
+    ab.classList.remove('show');
   }
+  return Math.round(finalPct);
 }
+
+/* ---- eventos de captura ---- */
+document.addEventListener('click', e=>{
+  const t=e.target;
+  if(t.classList.contains('sbtn')){
+    const i=+t.dataset.i, n=+t.dataset.n;
+    criterios[i].s = criterios[i].s===n? 0 : n;
+    markDirty(); renderCriterios(); recalc();
+  }
+  if(t.classList.contains('rubricbtn')){
+    document.getElementById('rub'+t.dataset.rub).classList.toggle('open');
+  }
+  if(t.classList.contains('lockbtn')){
+    const i=+t.dataset.lock;
+    candados[i].violated=!candados[i].violated;
+    markDirty(); renderCandados(); recalc();
+  }
+});
+document.addEventListener('input', e=>{
+  if(e.target.dataset && e.target.dataset.ev!==undefined){
+    criterios[+e.target.dataset.ev].ev=e.target.value;
+    markDirty();
+  }
+});
+
+function markDirty(){
+  dirty=true;
+  document.getElementById('syncState').innerHTML='cambios sin guardar · sincronización en pausa';
+}
+
+function resetAll(){
+  criterios.forEach(c=>{c.s=0;c.ev='';});
+  candados.forEach(k=>k.violated=false);
+  markDirty(); renderCriterios(); renderCandados(); recalc();
+}
+
+function renderAll(){ renderCommittee(); renderCriterios(); renderCandados(); recalc(); }
 
 /* =====================================================================
-   RENDER (igual que el cascarón) + login
+   FASE 2 · CAPA DE DATOS SUPABASE
    ===================================================================== */
-function renderModules(){
-  const g=document.getElementById('modGrid'); g.innerHTML='';
-  state.modules.forEach((m,i)=>{
-    const pm=pulsoMeta[m.pulso]||pulsoMeta.optimo;
-    const div=document.createElement('div'); div.className='mod';
-    div.innerHTML=`
-      <div class="accentbar" style="background:${m.color}"></div>
-      <div class="body">
-        <div class="mtop"><div class="mname">${m.name}<small>${m.cat}</small></div>
-        <span class="pulsepill" style="background:${pm.color}">${pm.label}</span></div>
-        <div class="metricrow">
-          <div class="metric"><div class="v" style="color:${m.color}">${m.m1.v}</div><div class="k">${m.m1.k}</div></div>
-          <div class="metric"><div class="v" style="color:${m.color}">${m.m2.v}</div><div class="k">${m.m2.k}</div></div>
-        </div>
-        <div class="note">${m.note}</div>
-        <div class="foot">
-          <button onclick="abrir('${m.id}')">Abrir herramienta</button>
-          <button class="ghost" onclick="editModule(${i})">Editar</button>
-        </div>
-      </div>`;
-    g.appendChild(div);
-  });
-  const add=document.createElement('div'); add.className='addmod'; add.onclick=()=>openModal();
-  add.innerHTML=`<div class="plus">+</div><div class="t">Nueva sección</div>`;
-  g.appendChild(add);
+function toast(msg, kind){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast show'+(kind?(' '+kind):'');
+  clearTimeout(t._h);
+  t._h=setTimeout(()=>{ t.className='toast'; }, 3800);
 }
 
-function allActions(){
-  const arr=[];
-  state.modules.forEach(m=>{ (m.actions||[]).forEach((a,idx)=>arr.push({...a,mod:m.name,modId:m.id,color:m.color,_mi:state.modules.indexOf(m),_ai:idx})); });
-  return arr.sort((a,b)=>(a.done-b.done)||(prioOrder[a.prio]-prioOrder[b.prio]));
-}
-function renderDecision(){
-  const tb=document.getElementById('decBody'); tb.innerHTML='';
-  let alta=0,media=0,baja=0,pend=0;
-  allActions().forEach(a=>{
-    if(!a.done){ if(a.prio==='alta')alta++; else if(a.prio==='media')media++; else baja++; pend++; }
-    if(filter!=='todas' && a.modId!==filter) return;
-    const tr=document.createElement('tr'); if(a.done) tr.className='done';
-    const decOpts=['—','Crear Proyecto Especial','Esperar un mes más','Reunir con un puesto/persona','Delegar y dar seguimiento','Cancelar / descartar','Otra decisión'];
-    const sel=decOpts.map(o=>`<option ${a.decision===o?'selected':''}>${o}</option>`).join('');
-    let stateLine='';
-    if(a.decision==='Crear Proyecto Especial' && a.peReady) stateLine=`<span class="decstate proyecto">✓ Proyecto listo · <a href="#" onclick="openPE(${a._mi},${a._ai});return false" style="color:var(--ok)">ver texto</a></span>`;
-    else if(a.decision==='Esperar un mes más') stateLine=`<span class="decstate espera">⏸ Pospuesto al mes siguiente</span>`;
-    else if(a.decision==='Reunir con un puesto/persona') stateLine=`<span class="decstate reunir">👥 Reunión: ${a.decExtra||'(definir con quién)'}</span>`;
-    else if(a.decision==='Delegar y dar seguimiento') stateLine=`<span class="decstate delegar">→ Delegado a: ${a.decExtra||'(definir)'}</span>`;
-    else if(a.decision==='Cancelar / descartar') stateLine=`<span class="decstate cancel">Descartado</span>`;
-    else if(a.decision==='Otra decisión') stateLine=`<span class="decstate otra">${a.decExtra||'(especificar)'}</span>`;
-    tr.innerHTML=`
-      <td><span class="src" style="background:${a.color}">${a.mod}</span></td>
-      <td class="accion-txt">${a.txt}</td>
-      <td><span class="prio ${a.prio}">${a.prio}</span></td>
-      <td class="owner">${a.owner||'—'}</td>
-      <td><select class="decsel" onchange="setDecision(${a._mi},${a._ai},this.value)">${sel}</select>${stateLine}</td>
-      <td><button class="done-btn" onclick="toggleDone(${a._mi},${a._ai})">${a.done?'Reabrir':'✓ Hecho'}</button></td>`;
-    tb.appendChild(tr);
-  });
-  document.getElementById('cAlta').textContent=alta;
-  document.getElementById('cMedia').textContent=media;
-  document.getElementById('cBaja').textContent=baja;
-  document.getElementById('cPend').textContent=pend;
-}
-function renderFilters(){
-  const fb=document.getElementById('filterBar');
-  fb.innerHTML=`<button class="fbtn ${filter==='todas'?'on':''}" onclick="setFilter('todas')">Todas</button>`;
-  state.modules.forEach(m=>{ fb.innerHTML+=`<button class="fbtn ${filter===m.id?'on':''}" onclick="setFilter('${m.id}')">${m.name}</button>`; });
-}
-function renderOwnerSelect(){
-  const s=document.getElementById('aMod'); s.innerHTML='';
-  state.modules.forEach(m=>{ s.innerHTML+=`<option value="${m.id}">${m.name}</option>`; });
-}
-function setFilter(f){ filter=f; renderFilters(); renderDecision(); }
-function toggleDone(mi,ai){ const m=state.modules[mi]; const a=m.actions[ai]; a.done=!a.done; writeOverlay(m.id,a); save(); renderDecision(); }
-
-function setDecision(mi,ai,val){
-  const m=state.modules[mi]; const a=m.actions[ai];
-  a.decision=val;
-  if(val==='Crear Proyecto Especial'){ writeOverlay(m.id,a); save(); openPE(mi,ai); return; }
-  if(val==='Reunir con un puesto/persona'){ a.decExtra=prompt('¿Con quién te reúnes? (puesto o persona)','')||''; }
-  else if(val==='Delegar y dar seguimiento'){ a.decExtra=prompt('¿A quién delegas?','')||''; }
-  else if(val==='Otra decisión'){ a.decExtra=prompt('Especifica la decisión:','')||''; }
-  else { a.decExtra=''; }
-  writeOverlay(m.id,a); save(); renderDecision();
-}
-
-let peCtx={mi:null,ai:null};
-function openPE(mi,ai){
-  peCtx={mi,ai};
-  const a=state.modules[mi].actions[ai];
-  const mod=state.modules[mi];
-  const plain=(a.txt||'').replace(/<[^>]+>/g,'');
-  a.pe=a.pe||{ nombre:plain.replace(/^[^·]*·\s*/,'').slice(0,60), responsable:a.owner||'', prioridad:a.prio||'media', proceso:'', fuente:mod.name, fecha:'', desc:plain };
-  document.getElementById('peName').value=a.pe.nombre;
-  document.getElementById('peResp').value=a.pe.responsable;
-  document.getElementById('pePrio').value=a.pe.prioridad;
-  document.getElementById('peProc').value=a.pe.proceso;
-  document.getElementById('peFuente').value=a.pe.fuente;
-  document.getElementById('peFecha').value=a.pe.fecha;
-  document.getElementById('peDesc').value=a.pe.desc;
-  buildPEText();
-  document.getElementById('peBg').classList.add('show');
-}
-function buildPEText(){
-  const v=id=>document.getElementById(id).value;
-  const prioCap=v('pePrio').charAt(0).toUpperCase()+v('pePrio').slice(1);
-  const txt=
-`NUEVO PROYECTO ESPECIAL — Recouromex
-─────────────────────────────────────
-Proyecto:         ${v('peName')}
-Responsable:      ${v('peResp')}
-Prioridad:        ${prioCap}
-Proceso afectado: ${v('peProc')}
-Fuente:           ${v('peFuente')}
-Fecha límite:     ${v('peFecha')}
-Descripción:      ${v('peDesc')}
-─────────────────────────────────────
-Generado desde SGC-Rec · para alta en Gestor de Proyectos`;
-  document.getElementById('peOut').textContent=txt;
-  return txt;
-}
-function copyPE(){
-  const txt=buildPEText();
-  const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select();
-  try{ document.execCommand('copy'); }catch(e){}
-  document.body.removeChild(ta);
-  document.getElementById('peCopied').textContent='✓ Copiado — pégaselo a Alma';
-  const m=state.modules[peCtx.mi]; const a=m.actions[peCtx.ai]; a.peReady=true; writeOverlay(m.id,a); save();
-}
-function closePE(){ document.getElementById('peBg').classList.remove('show'); document.getElementById('peCopied').textContent=''; renderDecision(); }
-function addAction(){
-  const modId=document.getElementById('aMod').value;
-  const txt=document.getElementById('aTxt').value.trim();
-  const prio=document.getElementById('aPrio').value;
-  const owner=document.getElementById('aOwner').value.trim();
-  if(!txt) return;
-  const m=state.modules.find(x=>x.id===modId);
-  const act={txt,prio,owner,done:false,manual:true};
-  m.actions=m.actions||[]; m.actions.push(act);
-  if(LIVE_IDS.includes(modId)){ state.manualActions[modId]=state.manualActions[modId]||[]; state.manualActions[modId].push({txt,prio,owner,done:false,manual:true}); }
-  document.getElementById('aTxt').value=''; document.getElementById('aOwner').value='';
-  save(); renderAll();
-}
-function abrir(id){
-  const m=state.modules.find(x=>x.id===id);
-  if(m && m.url){ window.open(m.url,'_blank'); }
-  else { alert('Aún no has enlazado la URL de "'+m.name+'".\nUsa "Editar" para pegar el enlace de la herramienta.'); }
-}
-let editIndex=null;
-function openModal(){
-  editIndex=null;
-  document.getElementById('modalTitle').textContent='Nueva sección';
-  document.getElementById('nmName').value=''; document.getElementById('nmCat').value='';
-  document.getElementById('nmUrl').value=''; document.getElementById('nmColor').value='#2E75B6';
-  document.getElementById('modalBg').classList.add('show');
-}
-function editModule(i){
-  editIndex=i; const m=state.modules[i];
-  document.getElementById('modalTitle').textContent='Editar sección';
-  document.getElementById('nmName').value=m.name; document.getElementById('nmCat').value=m.cat;
-  document.getElementById('nmUrl').value=m.url||''; document.getElementById('nmColor').value=m.color;
-  document.getElementById('modalBg').classList.add('show');
-}
-function closeModal(){ document.getElementById('modalBg').classList.remove('show'); }
-function saveModule(){
-  const name=document.getElementById('nmName').value.trim();
-  if(!name){ alert('Ponle un nombre al módulo.'); return; }
-  const cat=document.getElementById('nmCat').value.trim();
-  const url=document.getElementById('nmUrl').value.trim();
-  const color=document.getElementById('nmColor').value;
-  if(editIndex!==null){ Object.assign(state.modules[editIndex],{name,cat,url,color}); }
-  else {
-    state.modules.push({id:'mod'+Date.now(),name,cat:cat||'Sección nueva',color,url,pulso:'optimo',
-      m1:{v:'—',k:'Métrica 1'},m2:{v:'—',k:'Métrica 2'},
-      note:'Módulo nuevo. Edita su pulso y enlaza la herramienta. Sus acciones aparecerán aquí en el tablero.',actions:[]});
-  }
-  save(); closeModal(); renderAll();
-}
-function cerrarMes(){
-  if(confirm('¿Archivar el mes y limpiar las acciones marcadas como hechas?')){
-    state.modules.forEach(m=>{ m.actions=(m.actions||[]).filter(a=>!a.done); });
-    Object.keys(state.manualActions||{}).forEach(k=>{ state.manualActions[k]=(state.manualActions[k]||[]).filter(a=>!a.done); });
-    Object.keys(state.overlay||{}).forEach(k=>{ if(state.overlay[k] && state.overlay[k].done) delete state.overlay[k]; });
-    save(); renderAll();
+/* Aplica una fila de cult_evaluaciones al estado local (o limpia si no hay) */
+function applyEvaluacion(row){
+  if(row){
+    for(let i=0;i<8;i++){ criterios[i].s = row['c'+(i+1)] || 0; }
+    candados[0].violated = !!row.k_acoso;
+    candados[1].violated = !!row.k_seguridad;
+    candados[2].violated = !!row.k_laico;
+    const evi = row.evidencia || {};
+    criterios.forEach((c,i)=>{ c.ev = evi['c'+(i+1)] || ''; });
+  } else {
+    criterios.forEach(c=>{ c.s=0; c.ev=''; });
+    candados.forEach(k=>k.violated=false);
   }
 }
-function renderAll(){ renderModules(); renderFilters(); renderOwnerSelect(); renderDecision(); }
 
-/* ---- Login PIN de Dirección (valida contra rev_check_pin, exige 'direccion') ---- */
+/* Carga evaluadores, colaboradores (Alma + 16 coordinadores) y la evaluación del elegido */
+async function load(){
+  if(!db) return;
+  try{
+    const [evRes, coRes, periRes] = await Promise.all([
+      db.from('cult_evaluadores_publico').select('id,nombre,rol,activo').eq('activo',true),
+      db.from('cult_colaboradores').select('*').eq('activo',true).order('id'),
+      db.from('cult_evaluaciones').select('colaborador_id').eq('periodo', PERIODO)
+    ]);
+    if(evRes.error) throw evRes.error;
+    if(coRes.error) throw coRes.error;
+    if(periRes.error) throw periRes.error;
+    DATA.evaluadores = evRes.data || [];
+    DATA.colaboradores = coRes.data || [];
+    DATA.evaluadosPeriodo = new Set((periRes.data||[]).map(r=>r.colaborador_id));
+
+    fillColabSelect();
+    // colaborador elegido: el del selector, o el primero (Alma) por defecto
+    const selId = document.getElementById('colabSel').value;
+    DATA.evaluado = DATA.colaboradores.find(c=>c.id===selId) || DATA.colaboradores[0] || null;
+    document.getElementById('colabSel').value = DATA.evaluado ? DATA.evaluado.id : '';
+
+    await loadEvaluacionActual();
+    updatePendientes();
+    dirty=false;
+    document.getElementById('syncState').textContent='actualizado';
+  }catch(err){
+    console.error(err);
+    toast('Error al cargar: '+(err.message||err), 'err');
+  }
+}
+
+/* Carga la evaluación del colaborador elegido para el periodo (o formulario en blanco) */
+async function loadEvaluacionActual(){
+  if(!DATA.evaluado){
+    document.getElementById('evalName').textContent = 'Sin colaborador activo';
+    document.getElementById('evalRole').textContent = '';
+    applyEvaluacion(null); renderAll(); return;
+  }
+  document.getElementById('evalName').textContent = DATA.evaluado.nombre;
+  document.getElementById('evalRole').textContent = DATA.evaluado.puesto || '';
+  const evalRes = await db.from('cult_evaluaciones')
+    .select('*').eq('colaborador_id', DATA.evaluado.id).eq('periodo', PERIODO).maybeSingle();
+  if(evalRes.error){ console.error(evalRes.error); }
+  applyEvaluacion(evalRes.data);
+  renderAll();
+}
+
+/* Llena el dropdown de colaboradores (Alma + 16 coordinadores); ✓ en los ya evaluados del mes */
+function fillColabSelect(){
+  const sel=document.getElementById('colabSel'); if(!sel) return;
+  const prev=sel.value; const done=DATA.evaluadosPeriodo||new Set();
+  sel.innerHTML = (DATA.colaboradores||[]).map(c=>`<option value="${c.id}">${done.has(c.id)?'✓ ':''}${c.nombre}</option>`).join('');
+  if(prev && (DATA.colaboradores||[]).some(c=>c.id===prev)) sel.value=prev;
+}
+
+/* Cambio de colaborador en el dropdown */
+async function onColabChange(){
+  const sel=document.getElementById('colabSel');
+  if(dirty && !confirm('Tienes cambios sin guardar en este colaborador. ¿Cambiar y descartarlos?')){
+    if(DATA.evaluado) sel.value=DATA.evaluado.id; return;
+  }
+  DATA.evaluado = (DATA.colaboradores||[]).find(c=>c.id===sel.value) || null;
+  dirty=false;
+  await loadEvaluacionActual();
+}
+
+/* Indicador de pendientes del periodo (cuántos de los 17 evaluables ya tienen evaluación) */
+function updatePendientes(){
+  const el=document.getElementById('pendInfo'); if(!el) return;
+  const total=(DATA.colaboradores||[]).length;
+  const hechos=(DATA.colaboradores||[]).filter(c=>(DATA.evaluadosPeriodo||new Set()).has(c.id)).length;
+  el.innerHTML = total ? `Evaluados este periodo: <b>${hechos}/${total}</b> · faltan <b>${total-hechos}</b>` : '—';
+}
+
+/* Guarda la evaluación vía RPC (verifica PIN en el servidor) */
+async function save(){
+  if(!db){ toast('Sin conexión', 'err'); return; }
+  if(!SESSION.pin){ toast('Inicia sesión con tu PIN primero', 'err'); return; }
+  if(!DATA.evaluado){ toast('No hay colaborador para evaluar', 'err'); return; }
+
+  const scores = criterios.map(c=>c.s||0);
+  if(scores.some(s=>s<1)){
+    if(!confirm('Faltan criterios por calificar. ¿Guardar de todas formas como avance parcial?')) return;
+  }
+  const candArr = [candados[0].violated, candados[1].violated, candados[2].violated];
+  const evidencia = {};
+  criterios.forEach((c,i)=>{ if(c.s>0 && c.s<=2 && c.ev && c.ev.trim()) evidencia['c'+(i+1)]=c.ev.trim(); });
+  // Evidencia obligatoria en notas bajas:
+  const faltaEvi = criterios.some((c,i)=> c.s>0 && c.s<=2 && !(c.ev && c.ev.trim()));
+  if(faltaEvi){ toast('Las notas 1 o 2 requieren evidencia escrita', 'err'); return; }
+
+  const resultado = recalc();
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=true; btn.textContent='Guardando…';
+  try{
+    const { error } = await db.rpc('cult_upsert_evaluacion', {
+      p_pin:         SESSION.pin,
+      p_colaborador: DATA.evaluado.id,
+      p_periodo:     PERIODO,
+      p_scores:      scores,
+      p_candados:    candArr,
+      p_resultado:   resultado,
+      p_evidencia:   evidencia,
+      p_recusados:   recusadosIds(),
+      p_evaluado_por:evaluadoPorIds(),
+      p_cerrada:     false
+    });
+    if(error) throw error;
+    dirty=false;
+    if(DATA.evaluadosPeriodo) DATA.evaluadosPeriodo.add(DATA.evaluado.id);
+    fillColabSelect(); document.getElementById('colabSel').value=DATA.evaluado.id; updatePendientes();
+    toast('Evaluación de '+DATA.evaluado.nombre+' guardada ✓', 'ok');
+    document.getElementById('syncState').textContent='guardado';
+  }catch(err){
+    console.error(err);
+    toast('No se pudo guardar: '+(err.message||err), 'err');
+  }finally{
+    btn.disabled=false; btn.textContent='Guardar evaluación';
+  }
+}
+
+/* Sincronización ligera cada 30 s (igual que el Gestor). No pisa cambios sin guardar. */
+function startSync(){
+  if(syncTimer) clearInterval(syncTimer);
+  syncTimer=setInterval(()=>{
+    if(dirty) return; // no recargar si el usuario tiene cambios sin guardar
+    load();
+  }, 30000);
+}
+
+/* ---- Cerrar sesión (solo limpia la sesión local; no borra datos) ---- */
 function cerrarSesion(){
+  SESSION.pin=null; SESSION.evalId=null; SESSION.evalNombre=null; SESSION.evalRol=null;
+  if(syncTimer){ clearInterval(syncTimer); syncTimer=null; }
+  dirty=false;
   const lb=document.getElementById('logoutBtn'); if(lb) lb.classList.remove('show');
-  if(typeof setBadge==='function') setBadge('Sin conectar','var(--warn)');
+  const su=document.getElementById('sessUser'); if(su) su.textContent='—';
+  const sp=document.getElementById('sessPill'); if(sp){ sp.className='pill off'; sp.textContent='sin sesión'; }
+  const ss=document.getElementById('syncState'); if(ss) ss.textContent='sesión cerrada';
   const pin=document.getElementById('pinInput'); if(pin) pin.value='';
-  const msg=document.getElementById('loginMsg'); if(msg){ msg.className='msg info'; msg.textContent='Ingresa tu PIN de Dirección.'; }
+  const msg=document.getElementById('loginMsg'); if(msg){ msg.className='msg info'; msg.textContent='Ingresa tu PIN.'; }
   document.getElementById('loginOverlay').classList.remove('hidden');
   if(pin) pin.focus();
 }
+
+/* ---- Login por PIN ---- */
 async function doLogin(){
   const msg=document.getElementById('loginMsg');
   const pin=document.getElementById('pinInput').value.trim();
@@ -689,39 +719,49 @@ async function doLogin(){
   if(!db){ msg.className='msg err'; msg.textContent='Falta configurar el acceso (bloque CONFIG).'; return; }
   msg.className='msg info'; msg.textContent='Verificando…';
   try{
-    const { data, error } = await db.rpc('rev_check_pin', { p_pin: pin });
+    const { data, error } = await db.rpc('cult_check_pin', { p_pin: pin });
     if(error) throw error;
-    if(data!=='direccion'){ msg.className='msg err'; msg.textContent='PIN no autorizado para Dirección.'; return; }
+    if(!data){ msg.className='msg err'; msg.textContent='PIN incorrecto.'; return; }
+    SESSION.pin=pin; SESSION.evalId=data;
+    // recuperar nombre/rol del evaluador
+    const ev = await db.from('cult_evaluadores_publico').select('id,nombre,rol').eq('id',data).maybeSingle();
+    SESSION.evalNombre = ev.data ? ev.data.nombre : data;
+    SESSION.evalRol    = ev.data ? ev.data.rol : '';
+    document.getElementById('sessUser').textContent = SESSION.evalNombre;
+    const pill=document.getElementById('sessPill');
+    pill.className='pill on'; pill.textContent=SESSION.evalRol||'en sesión';
+    document.getElementById('sessPeriodo').textContent = PERIODO;
     document.getElementById('loginOverlay').classList.add('hidden');
     document.getElementById('logoutBtn').classList.add('show');
-    await loadLive();
+    await load();
+    startSync();
+    toast('Bienvenido(a), '+SESSION.evalNombre, 'ok');
   }catch(err){
-    console.error(err); msg.className='msg err'; msg.textContent='Error al validar PIN: '+(err.message||err);
+    console.error(err);
+    msg.className='msg err'; msg.textContent='Error al validar PIN: '+(err.message||err);
   }
 }
 
 /* ---- Arranque ---- */
 function init(){
-  load();
-  // asegurar que el periodo seleccionado exista en el dropdown
-  const sel=document.getElementById('periodSel');
-  if([...sel.options].some(o=>o.value===state.period)) sel.value=state.period; else { sel.value='Junio 2026'; state.period='Junio 2026'; }
-  sel.addEventListener('change',e=>{ state.period=e.target.value; save(); if(db) loadLive(); });
+  // pinta la UI base aunque no haya datos todavía
+  document.getElementById('sessPeriodo').textContent = PERIODO;
   renderAll();
 
   const msg=document.getElementById('loginMsg');
   if(!cfgOK){
     msg.className='msg err';
-    msg.innerHTML='⚠ Falta pegar la URL y la llave en el bloque <b>CONFIG</b> (arriba en el código). Pídeselo a Rodrigo.';
+    msg.innerHTML='⚠ Falta pegar la URL y la ANON key en el bloque <b>CONFIG</b> (arriba en el código). Pídeselo a Rodrigo.';
     document.getElementById('pinBtn').disabled=true;
-    setBadge('Sin conectar','var(--warn)');
     return;
   }
-  db=window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-  if(cfgInvOK){ try{ dbInv=window.supabase.createClient(CONFIG.INV_SUPABASE_URL, CONFIG.INV_SUPABASE_ANON_KEY); }catch(e){ console.warn('2a conexión inventario:', e.message); } }
-  msg.className='msg info'; msg.textContent='Conectado. Ingresa tu PIN de Dirección.';
+  db = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  msg.className='msg info'; msg.textContent='Conectado. Ingresa tu PIN.';
+
   document.getElementById('pinBtn').addEventListener('click', doLogin);
   document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('saveBtn').addEventListener('click', save);
+  document.getElementById('colabSel').addEventListener('change', onColabChange);
   document.getElementById('pinInput').focus();
 }
 init();
