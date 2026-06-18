@@ -204,7 +204,7 @@
 
   <!-- Selector de colaborador a evaluar + pendientes -->
   <div class="evalbar">
-    <div class="who">Evaluar a: <select id="colabSel"></select></div>
+    <div class="who">Evaluar a: <select id="colabSel"></select> &nbsp;·&nbsp; Periodo: <select id="periodSel"></select></div>
     <div class="pend" id="pendInfo">—</div>
   </div>
 
@@ -293,8 +293,8 @@
    corresponda a ESE proyecto y no al de Inventario.)
    ===================================================================== */
 const CONFIG = {
-  SUPABASE_URL:      "https://qcwpnovwyhzhqqmhjxco.supabase.co",   // ej: https://qcwpnovwyhzhqqmhjxco.supabase.co
-  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjd3Bub3Z3eWh6aHFxbWhqeGNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MDA3OTUsImV4cCI6MjA5NTI3Njc5NX0.-MSnn07PdxstQ90OLf16823Nvihr47ePXoQSFvgC3mU",          // la llave pública (anon)
+  SUPABASE_URL:      "PEGAR_AQUI_LA_URL_DE_SUPABASE",   // ej: https://qcwpnovwyhzhqqmhjxco.supabase.co
+  SUPABASE_ANON_KEY: "PEGAR_AQUI_LA_ANON_KEY",          // la llave pública (anon)
   PERIODO:           ""                                  // vacío = mes actual (YYYY-MM). Ej fijo: "2026-05"
 };
 /* ===================================================================== */
@@ -743,9 +743,23 @@ async function doLogin(){
 }
 
 /* ---- Arranque ---- */
+function fillPeriodSelect(){
+  const sel=document.getElementById('periodSel'); if(!sel) return;
+  const anio=2026;
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  sel.innerHTML='';
+  for(let m=1;m<=12;m++){ const val=anio+'-'+String(m).padStart(2,'0'); const o=document.createElement('option'); o.value=val; o.textContent=meses[m-1]+' '+anio; sel.appendChild(o); }
+  if([...sel.options].some(o=>o.value===PERIODO)) sel.value=PERIODO; else { sel.value=anio+'-'+String(new Date().getMonth()+1).padStart(2,'0'); PERIODO=sel.value; }
+  document.getElementById('sessPeriodo').textContent=PERIODO;
+  sel.addEventListener('change',e=>{
+    if(dirty && !confirm('Tienes cambios sin guardar en este colaborador. ¿Cambiar de periodo y descartarlos?')){ e.target.value=PERIODO; return; }
+    PERIODO=e.target.value; document.getElementById('sessPeriodo').textContent=PERIODO; dirty=false;
+    if(db && SESSION.pin) load();
+  });
+}
 function init(){
   // pinta la UI base aunque no haya datos todavía
-  document.getElementById('sessPeriodo').textContent = PERIODO;
+  fillPeriodSelect();
   renderAll();
 
   const msg=document.getElementById('loginMsg');
